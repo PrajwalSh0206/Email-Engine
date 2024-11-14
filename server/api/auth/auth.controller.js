@@ -2,7 +2,10 @@ const { loginService, callbackService } = require("./auth.service");
 
 function loginController(req, res, next) {
   try {
-    const url = loginService(req, res);
+    let { logger } = req.ctx;
+    logger = logger.child("Controller");
+    logger.info("Entered");
+    const url = loginService(req, logger);
     return res.send({ url });
   } catch (error) {
     next(error);
