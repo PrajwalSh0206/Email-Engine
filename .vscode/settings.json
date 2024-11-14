@@ -8,9 +8,6 @@
   "[json]": {
     "editor.tabSize": 2
   },
-  "eslint.validate": [
-    "javascript",
-  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
   }

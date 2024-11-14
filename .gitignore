@@ -1,2 +1,7 @@
+#overall
 node_modules
 .env
+
+#FE
+.parcel-cache
+dist
