@@ -5,6 +5,7 @@ const cors = require("cors");
 const { Logger } = require("./utils/logger");
 const { router } = require("./routes");
 const { ReqCtx } = require("./middleware/ctx-logger");
+const { errorHandler } = require("./middleware/error-handler");
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(helmet());
 app.use(express.json());
 app.use(ReqCtx);
 app.use(router);
+
+app.use(errorHandler);
 
 // app.use(ErrorHandler); // should be registered last
 

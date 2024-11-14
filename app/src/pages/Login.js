@@ -3,7 +3,7 @@ const { default: axios } = require("axios");
 const Login = () => {
   const handleClick = async () => {
     try {
-      const urlResponse = await axios.get("http://localhost:8000/auth/login/outlook");
+      const urlResponse = await axios.get("http://localhost:8000/auth/login/outlook2");
       const { url } = urlResponse.data;
       console.log(url);
       window.location.href = url;
