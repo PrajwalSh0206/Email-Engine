@@ -14,7 +14,10 @@ function loginController(req, res, next) {
 
 function callbackController(req, res, next) {
   try {
-    return callbackService(req);
+    let { logger } = req.ctx;
+    logger = logger.child("Controller");
+    logger.info("Entered");
+    return callbackService(req, res, logger);
   } catch (error) {
     next(error);
   }

@@ -19,4 +19,4 @@ const providers = {
   },
 };
 
-module.exports = { providers };
+module.exports = { providers, providersKeys: Object.keys(providers) };

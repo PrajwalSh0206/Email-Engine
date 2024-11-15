@@ -1,13 +1,14 @@
 const Joi = require("joi");
+const { providersKeys } = require("../../config/providers");
 
 const signInSchema = {
   source: "params",
   schema: Joi.object({
     provider: Joi.string().custom((value, helpers) => {
-      if (["outlook", "gmail"].includes(value)) {
+      if (providersKeys.includes(value)) {
         return value;
       }
-      return helpers.message("Invalid provider provided");
+      return helpers.message("Invalid provider");
     }, "Custom Validation"),
   }),
 };

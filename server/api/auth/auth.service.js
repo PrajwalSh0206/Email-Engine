@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const { providers } = require("../../config/providers");
 const { STATUS_CODE } = require("../../constants/http-status");
 const { CustomError } = require("../../utils/CustomError");
@@ -16,25 +17,30 @@ function loginService(req, logger) {
   }
 }
 
-async function callbackService(req) {
+async function callbackService(req, res, logger) {
+  logger.info(`Query: ${JSON.stringify(req.query)}`);
   const provider = req.params.provider;
   if (!providers[provider]) {
     throw new CustomError("Invalid provider", STATUS_CODE.NOT_FOUND);
   } else {
-    const code = req.query.code;
+    const { code, error, error_description } = req.query;
+    if (error) {
+    } else {
+      const { clientId, tokenUrl, clientSecret, redirectUri } = providers[provider];
 
-    const response = await axios.post(
-      providers[provider].tokenUrl,
-      new URLSearchParams({
-        client_id: providers[provider].clientId,
-        client_secret: providers[provider].clientSecret,
+      const query = {
+        client_id: clientId,
+        client_secret: clientSecret,
         code,
-        redirect_uri: providers[provider].redirectUri,
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
-      })
-    );
+      };
+      logger.info(`Query | ${JSON.stringify(query)} | Url | ${tokenUrl}`);
 
-    req.session[`${provider}_access_token`] = response.data.access_token;
+      const response = await axios.post(tokenUrl, new URLSearchParams(query));
+      logger.info(JSON.stringify(response.data));
+      res.redirect("http://localhost:1234");
+    }
   }
 }
 
