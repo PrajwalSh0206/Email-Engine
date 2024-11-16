@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel app/public/index.html",
-    "dev:api": "nodemon server/index.js"
+    "dev:api": "nodemon --watch server server/index.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,7 @@
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "react": "^18.3.1",
@@ -23,6 +24,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@parcel/transformer-sass": "^2.13.0",
     "buffer": "^6.0.3",
     "parcel": "^2.13.0",
     "postcss": "^8.4.49",

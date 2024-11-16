@@ -1,12 +1,26 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Login } from "./pages/Login";
-import { Error } from "./pages/Error";
+import Login from "./pages/Login";
+import Error from "./pages/Error";
+import Mail from "./pages/Mail";
+import RootLayout from "./layout/RootLayout";
+import "./scss/index.scss";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login></Login>,
+    element: <RootLayout></RootLayout>,
+    children: [
+      {
+        path: "/",
+        element: <Login></Login>,
+      },
+
+      {
+        path: "/mail",
+        element: <Mail></Mail>,
+      },
+    ],
   },
   {
     path: "/error",

@@ -13,26 +13,18 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-gray-100 h-screen w-full flex items-center justify-center">
-      <div className="w-6/12 lg:w-1/3 p-5 rounded-md flex flex-col justify-center">
-        <button
-          onClick={handleClick}
-          className="p-3 space-x-3 flex items-center justify-center border-2 border-gray-900 transition-transform active:scale-95 active:bg-gray-100 bg-white text-gray-900 rounded-full border-b-4 active:border-b-2"
-        >
-          <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-            <path
-              d="M4 16.9865V7.01353C4 6.71792 4.21531 6.46636 4.50737 6.42072L19.3074 4.10822C19.6713 4.05137 20 4.33273 20 4.70103V19.299C20 19.6673 19.6713 19.9486 19.3074 19.8918L4.50737 17.5793C4.21531 17.5336 4 17.2821 4 16.9865Z"
-              stroke="currentColor"
-              stroke-width="1.5"
-            ></path>
-            <path d="M4 12H20" stroke="currentColor" stroke-width="1.5"></path>
-            <path d="M10.5 5.5V18.5" stroke="currentColor" stroke-width="1.5"></path>
-          </svg>
-          <p>Sign In With Microsoft Account</p>
-        </button>
-      </div>
+    <div className="bg-gray-100 h-full w-full flex items-center justify-center">
+      <button
+        onClick={handleClick}
+        className="p-5  space-x-3 flex items-center justify-center border-2 border-gray-900 transition-transform active:scale-95 bg-white font-semibold text-gray-900 rounded-md border-b-4 active:border-b-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 30 30">
+          <path d="M 6 4 C 4.895 4 4 4.895 4 6 L 4 12 C 4 13.105 4.895 14 6 14 L 12 14 C 13.105 14 14 13.105 14 12 L 14 6 C 14 4.895 13.105 4 12 4 L 6 4 z M 18 4 C 16.895 4 16 4.895 16 6 L 16 12 C 16 13.105 16.895 14 18 14 L 24 14 C 25.105 14 26 13.105 26 12 L 26 6 C 26 4.895 25.105 4 24 4 L 18 4 z M 6 16 C 4.895 16 4 16.895 4 18 L 4 24 C 4 25.105 4.895 26 6 26 L 12 26 C 13.105 26 14 25.105 14 24 L 14 18 C 14 16.895 13.105 16 12 16 L 6 16 z M 18 16 C 16.895 16 16 16.895 16 18 L 16 24 C 16 25.105 16.895 26 18 26 L 24 26 C 25.105 26 26 25.105 26 24 L 26 18 C 26 16.895 25.105 16 24 16 L 18 16 z"></path>
+        </svg>
+        <p>Sign In With Microsoft Account</p>
+      </button>
     </div>
   );
 };
 
-module.exports = { Login };
+export default Login;

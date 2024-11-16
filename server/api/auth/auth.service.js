@@ -19,8 +19,9 @@ function loginService(req, logger) {
 }
 
 async function callbackService(req, res, logger) {
-  logger.info(`Query: ${JSON.stringify(req.query)}`);
-  const provider = req.params.provider;
+  const { provider } = req.params;
+  logger = logger.child("Service");
+
   if (!providers[provider]) {
     throw new CustomError("Invalid provider", STATUS_CODE.NOT_FOUND);
   } else {
