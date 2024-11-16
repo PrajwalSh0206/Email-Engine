@@ -2,6 +2,7 @@ const { default: axios } = require("axios");
 const { providers } = require("../../config/providers");
 const { STATUS_CODE } = require("../../constants/http-status");
 const { CustomError } = require("../../utils/CustomError");
+const { FRONTEND_URL } = require("../../constants");
 
 function loginService(req, logger) {
   const { provider } = req.params;
@@ -25,6 +26,8 @@ async function callbackService(req, res, logger) {
   } else {
     const { code, error, error_description } = req.query;
     if (error) {
+      logger.error(`Error | ${error} | Error | ${error_description}`);
+      res.redirect(`${FRONTEND_URL}/error?error=${error}`);
     } else {
       const { clientId, tokenUrl, clientSecret, redirectUri } = providers[provider];
 
@@ -35,11 +38,21 @@ async function callbackService(req, res, logger) {
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       };
-      logger.info(`Query | ${JSON.stringify(query)} | Url | ${tokenUrl}`);
 
-      const response = await axios.post(tokenUrl, new URLSearchParams(query));
-      logger.info(JSON.stringify(response.data));
-      res.redirect("http://localhost:1234");
+      try {
+        const response = await axios.post(tokenUrl, new URLSearchParams(query), {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+        logger.info("Access Token | Created");
+        const token = response.data.access_token;
+        req.session[`${provider}_access_token`] = token;
+        res.redirect(FRONTEND_URL);
+      } catch (error) {
+        logger.error(`Error | ${JSON.stringify(error)}`);
+        res.redirect(`${FRONTEND_URL}/error?error=Something_Went_Wrong`);
+      }
     }
   }
 }
