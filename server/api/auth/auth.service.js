@@ -1,4 +1,4 @@
-const { default: axios } = require("axios");
+const { default: axios, Axios } = require("axios");
 const { providers } = require("../../config/providers");
 const { STATUS_CODE } = require("../../constants/http-status");
 const { CustomError } = require("../../utils/CustomError");
@@ -7,6 +7,7 @@ const { FRONTEND_URL } = require("../../constants");
 function loginService(req, logger) {
   const { provider } = req.params;
   logger = logger.child("Service");
+  logger.info("Entered");
 
   if (!providers[provider]) {
     throw new CustomError("Invalid provider", STATUS_CODE.NOT_FOUND);
@@ -21,7 +22,7 @@ function loginService(req, logger) {
 async function callbackService(req, res, logger) {
   const { provider } = req.params;
   logger = logger.child("Service");
-
+  logger.info("Entered");
   if (!providers[provider]) {
     throw new CustomError("Invalid provider", STATUS_CODE.NOT_FOUND);
   } else {
@@ -46,10 +47,23 @@ async function callbackService(req, res, logger) {
             "Content-Type": "application/x-www-form-urlencoded",
           },
         });
-        logger.info("Access Token | Created");
-        const token = response.data.access_token;
-        req.session[`${provider}_access_token`] = token;
-        res.redirect(FRONTEND_URL);
+        logger.info(`Access Token | Created | ${response.data.access_token}`);
+
+        const access_token = response.data.access_token;
+
+        try {
+          const userDetails = await axios.get("https://graph.microsoft.com/v1.0/me", {
+            headers: {
+              Authorization: `Bearer ${encodeURIComponent(access_token)}`,
+            },
+          });
+          logger.info(`User Details | ${JSON.stringify(userDetails)}`);
+        } catch (error) {
+          logger.error(`${JSON.stringify(error)}`);
+        }
+
+        // res.redirect(`${FRONTEND_URL}/mail/${provider}?access_token=${encodeURIComponent(access_token)}`);
+        res.redirect(`${FRONTEND_URL}`);
       } catch (error) {
         logger.error(`Error | ${JSON.stringify(error)}`);
         res.redirect(`${FRONTEND_URL}/error?error=Something_Went_Wrong`);

@@ -17,7 +17,7 @@ const router = createBrowserRouter([
       },
 
       {
-        path: "/mail",
+        path: "/mail/:providers",
         element: <Mail></Mail>,
       },
     ],

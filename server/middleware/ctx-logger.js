@@ -12,7 +12,7 @@ const ReqCtx = (req, res, next) => {
   const routeKey = `${req.method} ${req.path}`;
   const logger = new Logger(`${routeKey} | ${requestId}`);
 
-  logger.info(`Query : ${JSON.stringify(req.query)} | Body: ${JSON.stringify(req.body)}`);
+  logger.info(`Query : ${JSON.stringify(req.query)} | Body: ${JSON.stringify(req.body)} | Headers: ${JSON.stringify(req.headers)}`);
 
   const ctx = {
     requestId: requestId,

@@ -5,8 +5,7 @@ function fetchMailController(req, res, next) {
     let { logger } = req.ctx;
     logger = logger.child("Controller");
     logger.info("Entered");
-    const url = fetchMailService(req, logger);
-    return res.send({ url });
+    const url = fetchMailService(req, res, logger);
   } catch (error) {
     next(error);
   }
