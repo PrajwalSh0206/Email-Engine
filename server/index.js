@@ -11,6 +11,7 @@ const { router } = require("./routes");
 const { ReqCtx } = require("./middleware/ctx-logger");
 const { errorHandler } = require("./middleware/error-handler");
 const mailEvents = require("./sockets/mailEvents");
+const { sequelize } = require("./models");
 
 const app = express();
 const server = http.createServer(app);
@@ -36,8 +37,19 @@ app.use(ReqCtx);
 app.use(router);
 app.use(errorHandler);
 
-// app.use(ErrorHandler); // should be registered last
-
-server.listen(NODE_PORT, () => {
-  new Logger("main").info(`Server is Running at: http://localhost:${NODE_PORT}`);
-});
+(async () => {
+  const logger = new Logger("Main");
+  try {
+    await sequelize.authenticate();
+    logger.info("Database connected");
+    await sequelize.sync(); // `force: true` drops the table if it exists
+    logger.info("Database synchronized.");
+    server.listen(NODE_PORT, () => {
+      logger.info(`Server is Running at: http://localhost:${NODE_PORT}`);
+    });
+  } catch (error) {
+    logger.error(`Error : ${JSON.stringify(error)}`);
+  } finally {
+    await sequelize.close();
+  }
+})();
