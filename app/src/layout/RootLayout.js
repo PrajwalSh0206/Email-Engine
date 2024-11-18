@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 const RootLayout = () => {
   return (
     <div className="w-screen h-screen flex flex-col">
-      <div className="flex p-5 space-x-5 justify-between border-gray-300 border-b-2 shadow-lg">
+      <div className="flex p-5 space-x-5 justify-between sticky top-0 z-50 bg-white border-gray-300 border-b-2 shadow-lg">
         <a href="#" className="flex space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
             <path

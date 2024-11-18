@@ -1,8 +1,9 @@
-const { default: axios, Axios } = require("axios");
+const { default: axios } = require("axios");
 const { providers } = require("../../config/providers");
 const { STATUS_CODE } = require("../../constants/http-status");
 const { CustomError } = require("../../utils/CustomError");
-const { FRONTEND_URL } = require("../../constants");
+const { FRONTEND_URL, COOKIE_CONSTANTS } = require("../../constants");
+const jwt = require("jsonwebtoken");
 
 function loginService(req, logger) {
   const { provider } = req.params;
@@ -47,23 +48,21 @@ async function callbackService(req, res, logger) {
             "Content-Type": "application/x-www-form-urlencoded",
           },
         });
-        logger.info(`Access Token | Created | ${response.data.access_token}`);
+        logger.info(`Access Token | Created`);
 
         const access_token = response.data.access_token;
+        const id_token = response.data.id_token;
+        const idTokenPayload = jwt.decode(id_token);
+        const email = idTokenPayload.email;
 
-        try {
-          const userDetails = await axios.get("https://graph.microsoft.com/v1.0/me", {
-            headers: {
-              Authorization: `Bearer ${encodeURIComponent(access_token)}`,
-            },
-          });
-          logger.info(`User Details | ${JSON.stringify(userDetails)}`);
-        } catch (error) {
-          logger.error(`${JSON.stringify(error)}`);
-        }
+        res.cookie("access_token", access_token, {
+          httpOnly: true,
+          secure: true,
+          maxAge: COOKIE_CONSTANTS.MAX_AGE, // Token expiration (1 hour)
+          sameSite: "Strict",
+        });
 
-        // res.redirect(`${FRONTEND_URL}/mail/${provider}?access_token=${encodeURIComponent(access_token)}`);
-        res.redirect(`${FRONTEND_URL}`);
+        res.redirect(`${FRONTEND_URL}/mail/${provider}?email=${email}`);
       } catch (error) {
         logger.error(`Error | ${JSON.stringify(error)}`);
         res.redirect(`${FRONTEND_URL}/error?error=Something_Went_Wrong`);
