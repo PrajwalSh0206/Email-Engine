@@ -11,6 +11,10 @@ const Users = sequelize.define("users", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  provider: {
+    type: DataTypes.STRING,
+    allowNull: true, // E.g., "Gmail", "Yahoo"
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
