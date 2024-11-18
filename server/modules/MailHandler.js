@@ -36,26 +36,31 @@ class MailHandler {
   }
 
   monitorForNewEmails() {
-    this.imap.on("mail", (numNewMsgs) => {
-      this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
-    });
+    this.imap.once("ready", () => {
+      this.#openBox(() => {
+        this.imap.on("mail", (numNewMsgs) => {
+          this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
+        });
 
-    // Listen for message deletions
-    this.imap.on("expunge", (seqno) => {
-      this.#logger.info(`Message deleted. Sequence number: ${seqno}`);
-    });
+        // Listen for message deletions
+        this.imap.on("expunge", (seqno) => {
+          this.#logger.info(`Message deleted. Sequence number: ${seqno}`);
+        });
 
-    this.imap.on("update", (seqno) => {
-      this.#logger.info(`Message updated. Sequence number: ${seqno}`);
+        this.imap.on("update", (seqno) => {
+          this.#logger.info(`Message updated. Sequence number: ${seqno}`);
 
-      // Fetch updated flags for this message
-      const fetcher = this.imap.seq.fetch(seqno, { bodies: "", struct: true });
-      fetcher.on("message", (msg) => {
-        msg.on("attributes", (attrs) => {
-          this.#logger.info("Updated flags:", attrs.flags);
+          // Fetch updated flags for this message
+          const fetcher = this.imap.seq.fetch(seqno, { bodies: "", struct: true });
+          fetcher.on("message", (msg) => {
+            msg.on("attributes", (attrs) => {
+              this.#logger.info("Updated flags:", attrs.flags);
+            });
+          });
         });
       });
     });
+    this.imap.connect();
   }
 
   async fetchInitialEmails(batchIndex, callback) {

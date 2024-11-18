@@ -14,6 +14,7 @@ module.exports = (io) => {
     if (providers[provider]) {
       logger.info("Provider Valid");
       imap = new MailHandler({ email, provider, accessToken }, socket, logger);
+      imap.monitorForNewEmails();
     }
     socket.on("disconnect", () => {
       logger.info("A user disconnected");

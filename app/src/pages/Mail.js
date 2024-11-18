@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../constants";
 import { io } from "socket.io-client";
+import mailEvents from "../sockets/mailEvents";
 
 const Mail = () => {
   let { provider } = useParams();
@@ -28,6 +29,7 @@ const Mail = () => {
       const { messages, batch } = response.data;
       setMail(messages);
       setBatches(batch);
+      handleSocket(email);
     } catch (error) {
       navigate("/");
     }
@@ -46,16 +48,12 @@ const Mail = () => {
     }
     setIndex(newIndex);
     if (prev != newIndex) {
-      console.log("check");
-
       handleMessage();
     }
   };
 
-  const handleSocket = async () => {
+  const handleSocket = async (email) => {
     try {
-      const email = searchParams.get("email");
-
       const socket = io(CONSTANTS.BACKEND_URL, {
         auth: {
           provider,
@@ -65,16 +63,7 @@ const Mail = () => {
       });
 
       socket.connect();
-
-      socket.on("connect", () => {
-        console.log(socket.connected); // true
-      });
-
-      socket.on("mail", (message) => {
-        let { messageId } = message;
-        mail[messageId] = message;
-        setMail({ ...mail });
-      });
+      mailEvents(socket);
     } catch (error) {
       navigate("/");
     }
@@ -86,9 +75,9 @@ const Mail = () => {
   }, []);
 
   return (
-    <div className="w-full h-full p-5 bg-gray-200 z-10">
-      <div className="rounded-md bg-white border-2 border-gray-500 p-3 z-10 flex flex-col items-end space-y-5">
-        <table className="table-auto  w-full text-left z-10">
+    <div className="w-full h-full p-5 bg-gray-200">
+      <div className="rounded-md bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5">
+        <table className="w-full text-left">
           <thead className="border-b-2 border-gray-300">
             <tr>
               <th className="p-2 w-1/12">Id</th>
