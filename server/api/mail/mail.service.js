@@ -3,7 +3,7 @@ const { MailHandler } = require("../../modules/MailHandler");
 
 async function fetchMailService(req, res, logger) {
   const { provider } = req.params;
-  const { email, index } = req.body;
+  const { email, index, userId } = req.body;
   logger = logger.child("Service");
   logger.info("Entered");
 
@@ -13,7 +13,7 @@ async function fetchMailService(req, res, logger) {
     return res.status(400).send({ message: `Invalid Providers` });
   } else {
     try {
-      let imap = new MailHandler({ email, provider, accessToken }, null, logger);
+      let imap = new MailHandler({ email, provider, accessToken, userId }, null, logger);
       imap.fetchInitialEmails(index, (err, result) => {
         if (err) {
           return res.status(500).send(`Error While Fetching Data: ${err.message}`);

@@ -6,14 +6,14 @@ const { MailHandler } = require("../modules/MailHandler");
 module.exports = (io) => {
   io.on("connection", (socket) => {
     const accessToken = cookie.parse(socket.handshake.headers.cookie)["access_token"];
-    const { provider, email } = socket.handshake.auth; // Access the data sent by the client
+    const { provider, email, userId } = socket.handshake.auth; // Access the data sent by the client
     const logger = new Logger(`Socket Connected at ${provider}`);
     logger.info(`${JSON.stringify(provider)}`);
 
     let imap;
     if (providers[provider]) {
       logger.info("Provider Valid");
-      imap = new MailHandler({ email, provider, accessToken }, socket, logger);
+      imap = new MailHandler({ email, provider, accessToken, userId }, socket, logger);
       imap.monitorForNewEmails();
     }
     socket.on("disconnect", () => {

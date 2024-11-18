@@ -4,6 +4,7 @@ const { STATUS_CODE } = require("../../constants/http-status");
 const { CustomError } = require("../../utils/CustomError");
 const { FRONTEND_URL, COOKIE_CONSTANTS } = require("../../constants");
 const jwt = require("jsonwebtoken");
+const { createIfNotExist } = require("../../repositories/users");
 
 function loginService(req, logger) {
   const { provider } = req.params;
@@ -55,14 +56,24 @@ async function callbackService(req, res, logger) {
         const idTokenPayload = jwt.decode(id_token);
         const email = idTokenPayload.email;
 
+        const data = {
+          email,
+          provider,
+        };
+        const condition = {
+          email,
+        };
+        // Store User Details
+        const result = await createIfNotExist(data, condition);
+
         res.cookie("access_token", access_token, {
           httpOnly: true,
           secure: true,
-          maxAge: COOKIE_CONSTANTS.MAX_AGE, // Token expiration (1 hour)
+          maxAge: COOKIE_CONSTANTS.MAX_AGE,
           sameSite: "Strict",
         });
 
-        res.redirect(`${FRONTEND_URL}/mail/${provider}?email=${email}`);
+        res.redirect(`${FRONTEND_URL}/mail/${provider}?email=${email}&user_id=${result.id}`);
       } catch (error) {
         logger.error(`Error | ${JSON.stringify(error)}`);
         res.redirect(`${FRONTEND_URL}/error?error=Something_Went_Wrong`);

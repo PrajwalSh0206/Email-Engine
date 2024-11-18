@@ -3,18 +3,20 @@ const { simpleParser } = require("mailparser");
 const { providers } = require("../config/providers");
 const sanitizeHtml = require("sanitize-html");
 const { dateFormatter, timeFormatter } = require("../utils/common");
+const { createIfNotExist } = require("../repositories/mailbox");
 
 class MailHandler {
   #logger;
+  #userId;
 
-  constructor({ email, accessToken, provider }, io, logger) {
+  constructor({ email, accessToken, provider, userId }, io, logger) {
     this.#logger = logger.child("Fetch Email");
     const imapConfig = {
       host: providers[provider].imapHost,
       port: 993,
       user: email,
       tls: true,
-      xoauth2: this.generateXOAuth2Token(email, accessToken), // Generate XOAUTH2 token
+      xoauth2: this.#generateXOAuth2Token(email, accessToken), // Generate XOAUTH2 token
       tlsOptions: { rejectUnauthorized: false },
       connTimeout: 10000, // Connection timeout (10 seconds)
       authTimeout: 10000, // Authentication timeout (10 seconds)
@@ -24,10 +26,11 @@ class MailHandler {
         forceNoop: true,
       },
     };
+    this.#userId = userId;
     this.imap = new Imap(imapConfig);
   }
 
-  generateXOAuth2Token(userEmail, accessToken) {
+  #generateXOAuth2Token(userEmail, accessToken) {
     return Buffer.from(`user=${userEmail}\x01auth=Bearer ${accessToken}\x01\x01`).toString("base64");
   }
 
@@ -101,8 +104,7 @@ class MailHandler {
                   }
                   const { subject, text, from, date, messageId } = mail;
 
-                  const sanitizedText = sanitizeHtml(mail.text || "");
-                  // const sanitizedHtml = sanitizeHtml(mail.html || "");
+                  const sanitizedText = sanitizeHtml(text || "");
 
                   let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
                   let message = {
@@ -114,6 +116,24 @@ class MailHandler {
                     date: dateFormatter.format(date),
                     time: timeFormatter.format(date),
                   };
+
+                  const condition = {
+                    userId: this.#userId,
+                    messageId,
+                  };
+                  createIfNotExist(
+                    {
+                      userId: this.#userId,
+                      from: from.value[0].address,
+                      messageId,
+                      subject,
+                      status: flag ? flag : "UNSEEN",
+                      text: sanitizedText,
+                      mailDate: dateFormatter.format(date),
+                      mailTime: timeFormatter.format(date),
+                    },
+                    condition
+                  );
                   messages[message.messageId] = message;
                   resolveParser();
                 });

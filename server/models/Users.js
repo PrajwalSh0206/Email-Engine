@@ -7,10 +7,6 @@ const Users = sequelize.define("users", {
     primaryKey: true,
     autoIncrement: true,
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   provider: {
     type: DataTypes.STRING,
     allowNull: true, // E.g., "Gmail", "Yahoo"
@@ -22,10 +18,6 @@ const Users = sequelize.define("users", {
     validate: {
       isEmail: true,
     },
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
   },
 });
 

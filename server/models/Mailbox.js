@@ -11,6 +11,12 @@ const Mailbox = sequelize.define("mailbox", {
   folderName: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: "INBOX",
+  },
+  messageId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
   },
   status: {
     // type: DataTypes.ENUM("read", "unread", "archived"), // Example statuses
@@ -25,12 +31,16 @@ const Mailbox = sequelize.define("mailbox", {
     type: DataTypes.TEXT, // Email body content
     allowNull: false,
   },
-  sender: {
+  from: {
     type: DataTypes.STRING,
     allowNull: false, // Sender email address
   },
-  date: {
+  mailDate: {
     type: DataTypes.DATE,
+    allowNull: false, // Date the email was sent or received
+  },
+  mailTime: {
+    type: DataTypes.TIME,
     allowNull: false, // Date the email was sent or received
   },
   userId: {

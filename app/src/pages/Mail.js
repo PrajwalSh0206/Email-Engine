@@ -16,20 +16,22 @@ const Mail = () => {
   const handleMessage = async () => {
     try {
       const email = searchParams.get("email");
-
+      const userId = searchParams.get("user_id");
+      console.log(userId);
       const response = await axios({
         method: "POST",
         url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
         data: {
           email,
           index,
+          userId,
         },
         withCredentials: true,
       });
       const { messages, batch } = response.data;
       setMail(messages);
       setBatches(batch);
-      handleSocket(email);
+      handleSocket(email, userId);
     } catch (error) {
       navigate("/");
     }
@@ -40,10 +42,10 @@ const Mail = () => {
     let newIndex = index;
     switch (type) {
       case "dec":
-        newIndex = Math.max(index - 1, 0);
+        newIndex = Math.max(index - 1, 0 - 1);
         break;
       default:
-        newIndex = Math.min(index + 1, batches);
+        newIndex = Math.min(index + 1, batches - 1);
         break;
     }
     setIndex(newIndex);
@@ -52,12 +54,13 @@ const Mail = () => {
     }
   };
 
-  const handleSocket = async (email) => {
+  const handleSocket = async (email, userId) => {
     try {
       const socket = io(CONSTANTS.BACKEND_URL, {
         auth: {
           provider,
           email,
+          userId,
         },
         withCredentials: true,
       });

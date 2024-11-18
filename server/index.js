@@ -49,7 +49,5 @@ app.use(errorHandler);
     });
   } catch (error) {
     logger.error(`Error : ${JSON.stringify(error)}`);
-  } finally {
-    await sequelize.close();
   }
 })();
