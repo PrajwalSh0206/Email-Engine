@@ -116,7 +116,6 @@ const Mail = () => {
           onClose={() => {
             setPopUp(false);
           }}
-          type={"success"}
         ></Toast>
       )}
 
@@ -134,7 +133,7 @@ const Mail = () => {
             </tr>
           </thead>
           <tbody>
-            {Object.keys(mail).map((value, currentIndex) => (
+            {Object.keys(mail).map((value) => (
               <tr key={mail[value].messageId} className="even:bg-gray-200">
                 <td className="p-4">{mail[value].messageId}</td>
                 <td className="p-4">{mail[value].from}</td>
