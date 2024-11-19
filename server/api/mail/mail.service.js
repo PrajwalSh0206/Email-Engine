@@ -20,7 +20,7 @@ async function fetchMailService(req, res, logger) {
 
       // Calculate the offset
       let limit = 10;
-      const offset = (index + 1 - 1) * limit;
+      const offset = index * limit;
       let attributes = ["folderName", "messageId", ["status", "flag"], "subject", "text", "from", ["mailDate", "date"], ["mailTime", "time"]];
       let condition = {
         userId,

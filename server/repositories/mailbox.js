@@ -31,7 +31,7 @@ async function findWithLimit(attributes, condition, offset, limit) {
     attributes,
     offset: parseInt(offset),
     limit: parseInt(limit),
-    order: [["createdAt", "DESC"]], // Sort by newest first
+    order: [["messageId", "DESC"]], // Sort by newest first
     where: condition,
   });
 }

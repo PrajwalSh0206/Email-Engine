@@ -48,24 +48,6 @@ class MailHandler {
         // Listen for message deletions
         this.imap.on("expunge", (seqno) => {
           this.#logger.info(`Message deleted. Sequence number: ${seqno}`);
-          const fetcher = this.imap.seq.fetch(seqno, { bodies: "" });
-          fetcher.on("message", (msg) => {
-            msg.on("attributes", async (attrs) => {
-              this.#logger.info(`Deleted: ${attrs.flags} ${attrs.uid}`);
-              const data = {
-                status: "DELETED",
-              };
-              const condition = {
-                messageId: attrs.uid,
-                userId: this.#userId,
-              };
-              await updateMail(data, condition);
-              callback("updateEmail", {
-                messageId: attrs.uid,
-                flag: data.status,
-              });
-            });
-          });
         });
 
         this.imap.on("update", (seqno) => {
@@ -91,12 +73,6 @@ class MailHandler {
               });
             });
           });
-        });
-      });
-
-      this.#openBox("DELETED", () => {
-        this.imap.on("mail", (numNewMsgs) => {
-          this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
       });
     });

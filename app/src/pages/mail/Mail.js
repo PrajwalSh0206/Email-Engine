@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../../constants";
 import mailEvents from "../../sockets/mailEvents";
 import sockets from "../../sockets";
+import Toast from "../../components/toast";
 
 const Mail = () => {
   let { provider } = useParams();
@@ -15,6 +16,8 @@ const Mail = () => {
   const email = searchParams.get("email");
   const userId = searchParams.get("user_id");
   const [socket, setSocket] = useState();
+  const [popUp, setPopUp] = useState();
+  const [popUpMessage, setPopUpMessage] = useState();
 
   const handleMessage = async (newIndex) => {
     try {
@@ -47,6 +50,8 @@ const Mail = () => {
         const { messageId, flag } = data;
         console.log("un", mail);
         setMail((prevMail) => {
+          setPopUp(true);
+          setPopUpMessage(`Mail Id ${messageId} Got Updated`);
           if (prevMail[messageId]) {
             console.log("entered");
             return {
@@ -105,6 +110,16 @@ const Mail = () => {
 
   return (
     <div className="w-full h-full p-5 bg-gray-200">
+      {popUp && (
+        <Toast
+          message={popUpMessage}
+          onClose={() => {
+            setPopUp(false);
+          }}
+          type={"success"}
+        ></Toast>
+      )}
+
       <div className="rounded-md bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5">
         <table className="w-full text-left">
           <thead className="border-b-2 border-gray-300">
