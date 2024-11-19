@@ -4,7 +4,13 @@ async function create(data) {
   return Users.create(data);
 }
 
-async function find(attributes, condition) {
+async function updateUser(data, condition) {
+  return Users.update(data, {
+    where: condition,
+  });
+}
+
+async function findUser(attributes, condition) {
   return Users.findOne({
     attributes,
     where: condition,
@@ -12,11 +18,11 @@ async function find(attributes, condition) {
 }
 
 async function createIfNotExist(data, condition) {
-  let result = await find(["id"], condition);
+  let result = await findUser(["id"], condition);
   if (!result) {
     result = await create(data);
   }
   return result;
 }
 
-module.exports = { create, createIfNotExist };
+module.exports = { findUser, createIfNotExist, updateUser };

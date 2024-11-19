@@ -3,7 +3,7 @@ const { simpleParser } = require("mailparser");
 const { providers } = require("../config/providers");
 const sanitizeHtml = require("sanitize-html");
 const { dateFormatter, timeFormatter } = require("../utils/common");
-const { createIfNotExist } = require("../repositories/mailbox");
+const { createIfNotExist, updateMail } = require("../repositories/mailbox");
 
 class MailHandler {
   #logger;
@@ -56,8 +56,17 @@ class MailHandler {
           // Fetch updated flags for this message
           const fetcher = this.imap.seq.fetch(seqno, { bodies: "", struct: true });
           fetcher.on("message", (msg) => {
-            msg.on("attributes", (attrs) => {
-              this.#logger.info("Updated flags:", attrs.flags);
+            msg.on("attributes", async (attrs) => {
+              this.#logger.info(`Updated flags: ${attrs.flags} ${attrs.uid}`);
+              let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
+              const data = {
+                status: flag ? flag : "UNSEEN",
+              };
+              const condition = {
+                messageId: attrs.uid,
+                userId: this.#userId,
+              };
+              await updateMail(data, condition);
             });
           });
         });
@@ -82,7 +91,6 @@ class MailHandler {
           const batch = Math.ceil(totalMessages / batchSize);
           const start = batchIndex * batchSize + 1;
           const end = Math.min((batchIndex + 1) * batchSize, totalMessages);
-          // let allEmails = [];
 
           const fetch = this.imap.seq.fetch(`${start}:${end}`, { bodies: "" });
 
@@ -109,7 +117,7 @@ class MailHandler {
                   let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
                   let message = {
                     from: from.value[0].address,
-                    messageId,
+                    messageId: attrs.uid,
                     subject,
                     flag: flag ? flag : "UNSEEN",
                     text: sanitizedText,
@@ -125,7 +133,7 @@ class MailHandler {
                     {
                       userId: this.#userId,
                       from: from.value[0].address,
-                      messageId,
+                      messageId: attrs.uid,
                       subject,
                       status: flag ? flag : "UNSEEN",
                       text: sanitizedText,

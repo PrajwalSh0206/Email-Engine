@@ -11,6 +11,11 @@ const Users = sequelize.define("users", {
     type: DataTypes.STRING,
     allowNull: true, // E.g., "Gmail", "Yahoo"
   },
+  batch: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,

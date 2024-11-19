@@ -17,7 +17,27 @@ const Mail = () => {
     try {
       const email = searchParams.get("email");
       const userId = searchParams.get("user_id");
-      console.log(userId);
+      const response = await axios({
+        method: "POST",
+        url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
+        data: {
+          email,
+          index,
+          userId,
+        },
+        withCredentials: true,
+      });
+      const { messages } = response.data;
+      setMail(messages);
+    } catch (error) {
+      navigate("/");
+    }
+  };
+
+  const initialize = async () => {
+    try {
+      const email = searchParams.get("email");
+      const userId = searchParams.get("user_id");
       const response = await axios({
         method: "POST",
         url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
@@ -42,7 +62,7 @@ const Mail = () => {
     let newIndex = index;
     switch (type) {
       case "dec":
-        newIndex = Math.max(index - 1, 0 - 1);
+        newIndex = Math.max(index - 1, 0);
         break;
       default:
         newIndex = Math.min(index + 1, batches - 1);
@@ -64,7 +84,6 @@ const Mail = () => {
         },
         withCredentials: true,
       });
-
       socket.connect();
       mailEvents(socket);
     } catch (error) {
@@ -73,8 +92,7 @@ const Mail = () => {
   };
 
   useEffect(() => {
-    // handleApiCall();
-    handleMessage();
+    initialize();
   }, []);
 
   return (

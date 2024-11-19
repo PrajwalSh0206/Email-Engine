@@ -50,6 +50,15 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour12: true, // For AM/PM formatting
 });
 
+const convertArrayToObj = (arr = [], id) => {
+  let obj = {};
+  arr.forEach((value) => {
+    let objId = value[id];
+    obj[objId] = value;
+  });
+  return obj;
+};
+
 module.exports = {
   isObject,
   formatErr,
@@ -57,4 +66,5 @@ module.exports = {
   genRandString,
   dateFormatter,
   timeFormatter,
+  convertArrayToObj,
 };

@@ -1,5 +1,8 @@
 const { providers } = require("../../config/providers");
 const { MailHandler } = require("../../modules/MailHandler");
+const { findWithLimit } = require("../../repositories/mailbox");
+const { findUser, updateUser } = require("../../repositories/users");
+const { convertArrayToObj } = require("../../utils/common");
 
 async function fetchMailService(req, res, logger) {
   const { provider } = req.params;
@@ -14,16 +17,34 @@ async function fetchMailService(req, res, logger) {
   } else {
     try {
       let imap = new MailHandler({ email, provider, accessToken, userId }, null, logger);
-      imap.fetchInitialEmails(index, (err, result) => {
-        if (err) {
-          return res.status(500).send(`Error While Fetching Data: ${err.message}`);
-        }
-        if (result?.messages) {
-          const { messages, batch } = result;
-          logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
-          res.json({ messages, batch });
-        }
-      });
+
+      // Calculate the offset
+      let limit = 10;
+      const offset = (index + 1 - 1) * limit;
+      let attributes = ["folderName", "messageId", ["status", "flag"], "subject", "text", "from", ["mailDate", "date"], ["mailTime", "time"]];
+      let condition = {
+        userId,
+      };
+
+      const mailResponse = await findWithLimit(attributes, condition, offset, limit);
+      if (!mailResponse.length) {
+        imap.fetchInitialEmails(index, async (err, result) => {
+          if (err) {
+            return res.status(500).send(`Error While Fetching Data: ${err.message}`);
+          }
+          if (result?.messages) {
+            const { messages, batch } = result;
+            logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
+            await updateUser({ batch }, { id: userId });
+            res.json({ messages, batch });
+          }
+        });
+      } else {
+        const userResponse = await findUser(["batch"], { id: userId });
+        const { batch } = userResponse;
+        const messages = convertArrayToObj(mailResponse, "messageId");
+        res.json({ messages, batch });
+      }
     } catch (error) {
       logger.error(`Error | ${JSON.stringify(error)}`);
       return res.status(500).send({ message: `Error connecting to IMAP: ${error.message}` });
