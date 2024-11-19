@@ -34,13 +34,13 @@ class MailHandler {
     return Buffer.from(`user=${userEmail}\x01auth=Bearer ${accessToken}\x01\x01`).toString("base64");
   }
 
-  #openBox(callback) {
-    this.imap.openBox("INBOX", true, callback);
+  #openBox(mailboxName, callback) {
+    this.imap.openBox(mailboxName, true, callback);
   }
 
-  monitorForNewEmails() {
+  monitorForNewEmails(callback) {
     this.imap.once("ready", () => {
-      this.#openBox(() => {
+      this.#openBox("INBOX", () => {
         this.imap.on("mail", (numNewMsgs) => {
           this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
@@ -48,13 +48,31 @@ class MailHandler {
         // Listen for message deletions
         this.imap.on("expunge", (seqno) => {
           this.#logger.info(`Message deleted. Sequence number: ${seqno}`);
+          const fetcher = this.imap.seq.fetch(seqno, { bodies: "" });
+          fetcher.on("message", (msg) => {
+            msg.on("attributes", async (attrs) => {
+              this.#logger.info(`Deleted: ${attrs.flags} ${attrs.uid}`);
+              const data = {
+                status: "DELETED",
+              };
+              const condition = {
+                messageId: attrs.uid,
+                userId: this.#userId,
+              };
+              await updateMail(data, condition);
+              callback("updateEmail", {
+                messageId: attrs.uid,
+                flag: data.status,
+              });
+            });
+          });
         });
 
         this.imap.on("update", (seqno) => {
           this.#logger.info(`Message updated. Sequence number: ${seqno}`);
 
           // Fetch updated flags for this message
-          const fetcher = this.imap.seq.fetch(seqno, { bodies: "", struct: true });
+          const fetcher = this.imap.seq.fetch(seqno, { bodies: "" });
           fetcher.on("message", (msg) => {
             msg.on("attributes", async (attrs) => {
               this.#logger.info(`Updated flags: ${attrs.flags} ${attrs.uid}`);
@@ -67,8 +85,18 @@ class MailHandler {
                 userId: this.#userId,
               };
               await updateMail(data, condition);
+              callback("updateEmail", {
+                messageId: attrs.uid,
+                flag: data.status,
+              });
             });
           });
+        });
+      });
+
+      this.#openBox("DELETED", () => {
+        this.imap.on("mail", (numNewMsgs) => {
+          this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
       });
     });
@@ -78,7 +106,7 @@ class MailHandler {
   async fetchInitialEmails(batchIndex, callback) {
     return new Promise((resolve, reject) => {
       this.imap.once("ready", () => {
-        this.#openBox((err, box) => {
+        this.#openBox("INBOX", (err, box) => {
           if (err) {
             this.imap.end();
             return this.handleResponse(err, null, { resolve, reject });

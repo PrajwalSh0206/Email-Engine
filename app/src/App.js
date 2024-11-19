@@ -2,7 +2,7 @@ import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./pages/Login";
 import Error from "./pages/Error";
-import Mail from "./pages/Mail";
+import Mail from "./pages/mail/Mail";
 import RootLayout from "./layout/RootLayout";
 import "./scss/index.scss";
 

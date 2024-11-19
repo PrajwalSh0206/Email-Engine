@@ -1,11 +1,11 @@
 const { fetchMailService } = require("./mail.service");
 
-function fetchMailController(req, res, next) {
+async function fetchMailController(req, res, next) {
   try {
     let { logger } = req.ctx;
     logger = logger.child("Controller");
     logger.info("Entered");
-    const url = fetchMailService(req, res, logger);
+    await fetchMailService(req, res, logger);
   } catch (error) {
     next(error);
   }

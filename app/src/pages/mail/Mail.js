@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import CONSTANTS from "../constants";
-import { io } from "socket.io-client";
-import mailEvents from "../sockets/mailEvents";
+import CONSTANTS from "../../constants";
+import mailEvents from "../../sockets/mailEvents";
+import sockets from "../../sockets";
 
 const Mail = () => {
   let { provider } = useParams();
@@ -12,8 +12,11 @@ const Mail = () => {
   const [mail, setMail] = useState({});
   const [batches, setBatches] = useState();
   const [index, setIndex] = useState(0);
+  const email = searchParams.get("email");
+  const userId = searchParams.get("user_id");
+  const [socket, setSocket] = useState();
 
-  const handleMessage = async () => {
+  const handleMessage = async (newIndex) => {
     try {
       const email = searchParams.get("email");
       const userId = searchParams.get("user_id");
@@ -22,28 +25,7 @@ const Mail = () => {
         url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
         data: {
           email,
-          index,
-          userId,
-        },
-        withCredentials: true,
-      });
-      const { messages } = response.data;
-      setMail(messages);
-    } catch (error) {
-      navigate("/");
-    }
-  };
-
-  const initialize = async () => {
-    try {
-      const email = searchParams.get("email");
-      const userId = searchParams.get("user_id");
-      const response = await axios({
-        method: "POST",
-        url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
-        data: {
-          email,
-          index,
+          index: newIndex,
           userId,
         },
         withCredentials: true,
@@ -51,11 +33,57 @@ const Mail = () => {
       const { messages, batch } = response.data;
       setMail(messages);
       setBatches(batch);
-      handleSocket(email, userId);
+      if (!socket) {
+        handleSocket();
+      }
     } catch (error) {
       navigate("/");
     }
   };
+
+  const handleEvents = (type, data) => {
+    switch (type) {
+      case "updateEmail": {
+        const { messageId, flag } = data;
+        console.log("un", mail);
+        setMail((prevMail) => {
+          if (prevMail[messageId]) {
+            console.log("entered");
+            return {
+              ...prevMail,
+              [messageId]: { ...prevMail[messageId], flag },
+            };
+          }
+        });
+
+        break;
+      }
+    }
+  };
+
+  const handleSocket = async () => {
+    const socket = sockets(provider, email, userId);
+    socket.connect();
+    setSocket(socket);
+
+    socket.on("connect", () => {
+      console.log(socket.connected); // true
+    });
+
+    socket.on("updateEmail", (message) => {
+      handleEvents("updateEmail", message);
+    });
+    return socket;
+  };
+
+  useEffect(() => {
+    handleMessage(0);
+    return () => {
+      if (socket) {
+        socket.disconnect(); // Close connection on unmount
+      }
+    };
+  }, []);
 
   const handlePagination = (type) => {
     let prev = index;
@@ -70,30 +98,10 @@ const Mail = () => {
     }
     setIndex(newIndex);
     if (prev != newIndex) {
-      handleMessage();
+      console.log(newIndex);
+      handleMessage(newIndex);
     }
   };
-
-  const handleSocket = async (email, userId) => {
-    try {
-      const socket = io(CONSTANTS.BACKEND_URL, {
-        auth: {
-          provider,
-          email,
-          userId,
-        },
-        withCredentials: true,
-      });
-      socket.connect();
-      mailEvents(socket);
-    } catch (error) {
-      navigate("/");
-    }
-  };
-
-  useEffect(() => {
-    initialize();
-  }, []);
 
   return (
     <div className="w-full h-full p-5 bg-gray-200">
@@ -101,7 +109,7 @@ const Mail = () => {
         <table className="w-full text-left">
           <thead className="border-b-2 border-gray-300">
             <tr>
-              <th className="p-2 w-1/12">Id</th>
+              <th className="p-2 w-1/12">UID</th>
               <th className="p-2 w-2/12">Sender</th>
               <th className="p-2 w-2/12">Subject</th>
               <th className="p-2 w-1/12">Flag</th>
@@ -113,7 +121,7 @@ const Mail = () => {
           <tbody>
             {Object.keys(mail).map((value, currentIndex) => (
               <tr key={mail[value].messageId} className="even:bg-gray-200">
-                <td className="p-4">{currentIndex + 1}</td>
+                <td className="p-4">{mail[value].messageId}</td>
                 <td className="p-4">{mail[value].from}</td>
                 <td className="p-4">{mail[value].subject}</td>
                 <td className="p-4">{mail[value].flag}</td>

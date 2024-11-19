@@ -1,11 +1,9 @@
-module.exports = (socket) => {
+module.exports = (socket, callback) => {
   socket.on("connect", () => {
     console.log(socket.connected); // true
   });
 
-  socket.on("mail", (message) => {
-    let { messageId } = message;
-    mail[messageId] = message;
-    setMail({ ...mail });
+  socket.on("updateEmail", (message) => {
+    callback("updateEmail", message);
   });
 };
