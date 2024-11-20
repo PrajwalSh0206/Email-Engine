@@ -42,7 +42,7 @@ app.use(errorHandler);
   try {
     await sequelize.authenticate();
     logger.info("Database connected");
-    await sequelize.sync({ force: true }); // `force: true` drops the table if it exists
+    await sequelize.sync(); // `force: true` drops the table if it exists
     logger.info("Database synchronized.");
     server.listen(NODE_PORT, () => {
       logger.info(`Server is Running at: http://localhost:${NODE_PORT}`);

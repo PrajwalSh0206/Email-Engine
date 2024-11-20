@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend.dev
     volumes:
-      - ./server:/app
+      - ./server:/server
     env_file:
       - .env 
     ports:
@@ -24,9 +24,10 @@ services:
       - postgres
     networks:
       - backend
+    command: "nodemon index.js"
 
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: my_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

@@ -1,18 +1,16 @@
 # Use a Node.js image for development
-FROM node:18
+FROM node:18-alpine
 
 # Set working directory
-WORKDIR /app
+WORKDIR /server
 
 # Copy package.json and install dependencies
-COPY ./server/package.json /app/
+COPY ./server/package.json package.json
 
 RUN npm install
 
 # Copy backend source code
-COPY ./server /app/
-
-COPY ./.env /app/
+COPY ./server .
 
 # Install nodemon for hot-reloading
 RUN npm install -g nodemon
@@ -21,4 +19,4 @@ RUN npm install -g nodemon
 EXPOSE 8000
 
 # Start the Express app with nodemon
-CMD ["npm", "run", "dev:api"]
+CMD ["npm", "run", "start"]
