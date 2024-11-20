@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Error from "./pages/Error";
 import Mail from "./pages/mail/Mail";
 import RootLayout from "./layout/RootLayout";
-import "./scss/index.scss";
+import "./scss/index.css";
 
 const router = createBrowserRouter([
   {

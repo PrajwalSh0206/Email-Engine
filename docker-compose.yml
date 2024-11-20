@@ -1,4 +1,30 @@
 services:
+  ui:
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - web
+    networks:
+      - backend
+
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    volumes:
+      - ./server:/app
+    env_file:
+      - .env 
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
   postgres:
     image: postgres:15
     container_name: my_postgres
@@ -10,7 +36,13 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
 
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  backend:
+    driver: bridge

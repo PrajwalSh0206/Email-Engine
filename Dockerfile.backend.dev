@@ -1,0 +1,24 @@
+# Use a Node.js image for development
+FROM node:18
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and install dependencies
+COPY ./server/package.json /app/
+
+RUN npm install
+
+# Copy backend source code
+COPY ./server /app/
+
+COPY ./.env /app/
+
+# Install nodemon for hot-reloading
+RUN npm install -g nodemon
+
+# Expose the backend server's port
+EXPOSE 8000
+
+# Start the Express app with nodemon
+CMD ["npm", "run", "dev:api"]

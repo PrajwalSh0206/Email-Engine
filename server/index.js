@@ -5,20 +5,20 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { Server } = require("socket.io");
 const http = require("http");
-
 const { Logger } = require("./utils/logger");
 const { router } = require("./routes");
 const { ReqCtx } = require("./middleware/ctx-logger");
 const { errorHandler } = require("./middleware/error-handler");
 const mailEvents = require("./sockets/mailEvents");
 const { sequelize } = require("./models");
+const { FRONTEND_URL } = require("./constants");
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:1234",
+    origin: FRONTEND_URL,
     credentials: true,
   },
 });
@@ -28,7 +28,7 @@ mailEvents(io);
 
 const NODE_PORT = process.env.NODE_PORT || 3000;
 /* register middleware here */
-app.use(cors({ origin: "http://localhost:1234", credentials: true }));
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());

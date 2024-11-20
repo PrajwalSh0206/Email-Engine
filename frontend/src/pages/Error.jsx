@@ -1,5 +1,4 @@
 import { useState } from "react";
-import errorImage from "../assets/image/404-page-not-found-1-15.svg";
 
 const Error = () => {
   const [error, setError] = useState("Whoops! Something Went Wrong");

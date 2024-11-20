@@ -114,14 +114,16 @@ class MailHandler {
                     logger.error(`Error ${err}`);
                     return rejectParser(err);
                   }
-                  const { subject, text, from, date, messageId } = mail;
+                  const { subject, text, from, date } = mail;
+
+                  const messageId = attrs.uid.toString();
 
                   const sanitizedText = sanitizeHtml(text || "");
 
                   let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
                   let message = {
                     from: from.value[0].address,
-                    messageId: attrs.uid,
+                    messageId,
                     subject,
                     flag: flag ? flag : "UNSEEN",
                     text: sanitizedText,
@@ -137,7 +139,7 @@ class MailHandler {
                     {
                       userId: this.#userId,
                       from: from.value[0].address,
-                      messageId: attrs.uid,
+                      messageId,
                       subject,
                       status: flag ? flag : "UNSEEN",
                       text: sanitizedText,
@@ -146,7 +148,7 @@ class MailHandler {
                     },
                     condition
                   );
-                  messages[message.messageId] = message;
+                  messages[messageId] = message;
                   resolveParser();
                 });
               });

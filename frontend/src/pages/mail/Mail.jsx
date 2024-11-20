@@ -2,7 +2,6 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../../constants";
-import mailEvents from "../../sockets/mailEvents";
 import sockets from "../../sockets";
 import Toast from "../../components/toast";
 
