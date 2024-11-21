@@ -5,6 +5,7 @@ import Error from "./pages/Error";
 import Mail from "./pages/mail/Mail";
 import RootLayout from "./layout/RootLayout";
 import "./scss/index.css";
+import Dashboard from "./pages/mail/Dashboard";
 
 const router = createBrowserRouter([
   {
@@ -17,7 +18,21 @@ const router = createBrowserRouter([
       },
       {
         path: "/mail/:provider",
-        element: <Mail></Mail>,
+        element: <Dashboard></Dashboard>,
+        children: [
+          {
+            path: "inbox",
+            element: <Mail folderName="INBOX"></Mail>,
+          },
+          {
+            path: "deleted",
+            element: <Mail folderName="Deleted"></Mail>,
+          },
+          {
+            path: "sent",
+            element: <Mail folderName="sent"></Mail>,
+          },
+        ],
       },
     ],
   },

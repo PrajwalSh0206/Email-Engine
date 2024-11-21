@@ -74,7 +74,7 @@ async function callbackService(req, res, logger) {
           sameSite: "Strict",
         });
 
-        res.redirect(`${FRONTEND_URL}/mail/${provider}?email=${email}&user_id=${result.id}`);
+        res.redirect(`${FRONTEND_URL}/mail/${provider}/inbox?email=${email}&user_id=${result.id}`);
       } catch (error) {
         logger.error(`Error | ${JSON.stringify(error)}`);
         res.redirect(`${FRONTEND_URL}/error?error=Something_Went_Wrong`);

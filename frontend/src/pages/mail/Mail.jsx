@@ -6,7 +6,7 @@ import sockets from "../../sockets";
 import Toast from "../../components/Toast";
 import Loader from "../../components/Loader";
 
-const Mail = () => {
+const Mail = ({folderName="inbox"}) => {
   let { provider } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,6 +29,7 @@ const Mail = () => {
         url: `${CONSTANTS.BACKEND_URL}/mail/${provider}`,
         data: {
           email,
+          folderName,
           index: newIndex,
           userId,
         },
@@ -70,7 +71,7 @@ const Mail = () => {
   };
 
   const handleSocket = (callback) => {
-    const socket = sockets(provider, email, userId);
+    const socket = sockets(provider, email, userId,folderName);
     socket.connect();
     setSocket(socket);
 
@@ -91,7 +92,7 @@ const Mail = () => {
         socket.disconnect(); // Close connection on unmount
       }
     };
-  }, []);
+  }, [folderName]);
 
   const handlePagination = (type) => {
     let prev = index;
@@ -116,7 +117,7 @@ const Mail = () => {
   }
 
   return (
-    <div className="w-full h-full p-5 bg-gray-200">
+    <div className="w-full h-full bg-gray-200">
       {popUp && (
         <Toast
           message={popUpMessage}
@@ -126,8 +127,8 @@ const Mail = () => {
         ></Toast>
       )}
 
-      <div className="rounded-md bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5">
-        <table className="w-full text-left">
+      <div className="rounded-md w-full bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5 overflow-x-scroll">
+        <table className="w-full min-h-full relative text-left">
           <thead className="border-b-2 border-gray-300">
             <tr>
               <th className="p-2 w-1/12">UID</th>
@@ -139,15 +140,15 @@ const Mail = () => {
               <th className="p-2 w-2/12">View</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="overflow-scroll">
             {Object.keys(mail).map((value) => (
               <tr key={mail[value].messageId} className="even:bg-gray-200">
-                <td className="p-4">{mail[value].messageId}</td>
-                <td className="p-4">{mail[value].from}</td>
-                <td className="p-4">{mail[value].subject}</td>
-                <td className="p-4">{mail[value].flag}</td>
-                <td className="p-4">{mail[value].date}</td>
-                <td className="p-4">{mail[value].time}</td>
+                <td className="p-4 w-1/12">{mail[value].messageId}</td>
+                <td className="p-4 relative w-2/12">{mail[value].from}</td>
+                <td className="p-4 w-2/12">{mail[value].subject}</td>
+                <td className="p-4 w-1/12">{mail[value].flag}</td>
+                <td className="p-4 w-2/12">{mail[value].date}</td>
+                <td className="p-4 w-2/12">{mail[value].time}</td>
                 <td className="p-4">
                   <button className="transition-transform transform active:scale-95 rounded-full p-1 bg-gray-200 border-2 border-gray-300">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">

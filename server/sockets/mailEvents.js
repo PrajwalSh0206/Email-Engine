@@ -10,13 +10,13 @@ module.exports = (io) => {
     };
 
     const accessToken = cookie.parse(socket.handshake.headers.cookie)["access_token"];
-    const { provider, email, userId } = socket.handshake.auth; // Access the data sent by the client
+    const { provider, email, userId, folderName } = socket.handshake.auth; // Access the data sent by the client
     const logger = new Logger(`Socket Connected at ${provider} | UserId | ${userId}`);
 
     let imap;
     if (providers[provider]) {
       logger.info("Provider Valid");
-      imap = new MailHandler({ email, provider, accessToken, userId }, socket, logger);
+      imap = new MailHandler({ email, provider, accessToken, userId, folderName }, socket, logger);
       imap.monitorForNewEmails(handleEmit);
     }
     socket.on("disconnect", () => {

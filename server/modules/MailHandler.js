@@ -9,8 +9,9 @@ const { decrypt } = require("../utils/enc-dec");
 class MailHandler {
   #logger;
   #userId;
+  #folderName;
 
-  constructor({ email, accessToken, provider, userId }, io, logger) {
+  constructor({ email, accessToken, provider, userId, folderName }, io, logger) {
     this.#logger = logger.child("Fetch Email");
     const imapConfig = {
       host: providers[provider].imapHost,
@@ -28,6 +29,7 @@ class MailHandler {
       },
     };
     this.#userId = userId;
+    this.#folderName = folderName || "INBOX";
     this.imap = new Imap(imapConfig);
   }
 
@@ -42,7 +44,7 @@ class MailHandler {
 
   monitorForNewEmails(callback) {
     this.imap.once("ready", () => {
-      this.#openBox("INBOX", () => {
+      this.#openBox(this.#folderName, () => {
         this.imap.on("mail", (numNewMsgs) => {
           this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
@@ -85,8 +87,9 @@ class MailHandler {
   async fetchInitialEmails(batchIndex, callback) {
     return new Promise((resolve, reject) => {
       this.imap.once("ready", () => {
-        this.#openBox("INBOX", (err, box) => {
+        this.#openBox(this.#folderName, (err, box) => {
           if (err) {
+            this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
             this.imap.end();
             return this.handleResponse(err, null, { resolve, reject });
           }
@@ -144,6 +147,7 @@ class MailHandler {
                       from: from.value[0].address,
                       messageId,
                       subject,
+                      folderName: this.#folderName,
                       status: flag ? flag : "UNSEEN",
                       text: sanitizedText,
                       mailDate: dateFormatter.format(date),
