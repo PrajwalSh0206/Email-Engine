@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../../constants";
 import sockets from "../../sockets";
-import Toast from "../../components/Toast";
+import Toasts from "../../components/Toasts";
 import Loader from "../../components/Loader";
 
 const Mail = ({folderName="inbox"}) => {
@@ -119,12 +119,12 @@ const Mail = ({folderName="inbox"}) => {
   return (
     <div className="w-full h-full bg-gray-200">
       {popUp && (
-        <Toast
+        <Toasts
           message={popUpMessage}
           onClose={() => {
             setPopUp(false);
           }}
-        ></Toast>
+        ></Toasts>
       )}
 
       <div className="rounded-md w-full bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5 overflow-x-scroll">
