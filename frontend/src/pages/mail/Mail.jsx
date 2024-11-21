@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../../constants";
 import sockets from "../../sockets";
-import Toast from "../../components/toast";
+import Toast from "../../components/Toast";
+import Loader from "../../components/Loader";
 
 const Mail = () => {
   let { provider } = useParams();
@@ -17,6 +18,11 @@ const Mail = () => {
   const [socket, setSocket] = useState();
   const [popUp, setPopUp] = useState();
   const [popUpMessage, setPopUpMessage] = useState();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log(mail);
+  }, [mail]);
 
   const handleMessage = async (newIndex) => {
     try {
@@ -38,6 +44,7 @@ const Mail = () => {
       if (!socket) {
         handleSocket();
       }
+      setLoading(false);
     } catch (error) {
       navigate("/");
     }
@@ -75,6 +82,7 @@ const Mail = () => {
     });
 
     socket.on("updateEmail", (message) => {
+      console.log(message);
       handleEvents("updateEmail", message);
     });
     return socket;
@@ -102,10 +110,14 @@ const Mail = () => {
     }
     setIndex(newIndex);
     if (prev != newIndex) {
+      setLoading(true);
       console.log(newIndex);
       handleMessage(newIndex);
     }
   };
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full p-5 bg-gray-200">

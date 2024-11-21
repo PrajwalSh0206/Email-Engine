@@ -27,7 +27,7 @@ async function fetchMailService(req, res, logger) {
       };
 
       const mailResponse = await findWithLimit(attributes, condition, offset, limit);
-      if (!mailResponse.length) {
+      if (!mailResponse?.length || mailResponse?.length != 10) {
         imap.fetchInitialEmails(index, async (err, result) => {
           if (err) {
             return res.status(500).send(`Error While Fetching Data: ${err.message}`);

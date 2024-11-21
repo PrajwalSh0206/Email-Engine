@@ -16,10 +16,8 @@ const Mailbox = sequelize.define("mailbox", {
   messageId: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
   },
   status: {
-    // type: DataTypes.ENUM("read", "unread", "archived"), // Example statuses
     type: DataTypes.STRING,
     defaultValue: "UNSEEN",
   },
