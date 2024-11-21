@@ -5,6 +5,7 @@ const { CustomError } = require("../../utils/CustomError");
 const { FRONTEND_URL, COOKIE_CONSTANTS } = require("../../constants");
 const jwt = require("jsonwebtoken");
 const { createIfNotExist } = require("../../repositories/users");
+const { encrypt } = require("../../utils/enc-dec");
 
 function loginService(req, logger) {
   const { provider } = req.params;
@@ -66,7 +67,7 @@ async function callbackService(req, res, logger) {
         // Store User Details
         const result = await createIfNotExist(data, condition);
 
-        res.cookie("access_token", access_token, {
+        res.cookie("access_token", encrypt(access_token), {
           httpOnly: true,
           secure: true,
           maxAge: COOKIE_CONSTANTS.MAX_AGE,

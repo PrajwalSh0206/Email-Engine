@@ -4,6 +4,7 @@ const { providers } = require("../config/providers");
 const sanitizeHtml = require("sanitize-html");
 const { dateFormatter, timeFormatter } = require("../utils/common");
 const { createIfNotExist, updateMail } = require("../repositories/mailbox");
+const { decrypt } = require("../utils/enc-dec");
 
 class MailHandler {
   #logger;
@@ -31,7 +32,8 @@ class MailHandler {
   }
 
   #generateXOAuth2Token(userEmail, accessToken) {
-    return Buffer.from(`user=${userEmail}\x01auth=Bearer ${accessToken}\x01\x01`).toString("base64");
+    let decryptedToken = decrypt(accessToken);
+    return Buffer.from(`user=${userEmail}\x01auth=Bearer ${decryptedToken}\x01\x01`).toString("base64");
   }
 
   #openBox(mailboxName, callback) {
