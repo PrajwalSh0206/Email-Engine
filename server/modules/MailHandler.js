@@ -62,13 +62,14 @@ class MailHandler {
               const data = {
                 status: flag ? flag : "UNSEEN",
               };
+              const messageId = attrs.uid.toString();
               const condition = {
-                messageId: attrs.uid,
+                messageId,
                 userId: this.#userId,
               };
               await updateMail(data, condition);
               callback("updateEmail", {
-                messageId: attrs.uid,
+                messageId,
                 flag: data.status,
               });
             });

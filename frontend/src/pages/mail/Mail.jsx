@@ -20,10 +20,6 @@ const Mail = () => {
   const [popUpMessage, setPopUpMessage] = useState();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    console.log(mail);
-  }, [mail]);
-
   const handleMessage = async (newIndex) => {
     try {
       const email = searchParams.get("email");
@@ -42,7 +38,7 @@ const Mail = () => {
       setMail(messages);
       setBatches(batch);
       if (!socket) {
-        handleSocket();
+        handleSocket(handleEvents);
       }
       setLoading(false);
     } catch (error) {
@@ -54,16 +50,17 @@ const Mail = () => {
     switch (type) {
       case "updateEmail": {
         const { messageId, flag } = data;
-        console.log("un", mail);
+        setPopUpMessage(`Updating Mail Id ${messageId} With Flag ${flag}`);
         setMail((prevMail) => {
+          const currentMails = prevMail || {};
           setPopUp(true);
-          setPopUpMessage(`Mail Id ${messageId} Got Updated`);
-          if (prevMail[messageId]) {
-            console.log("entered");
+          if (currentMails[messageId]) {
             return {
-              ...prevMail,
-              [messageId]: { ...prevMail[messageId], flag },
+              ...currentMails,
+              [messageId]: { ...currentMails[messageId], flag },
             };
+          } else {
+            return currentMails;
           }
         });
 
@@ -72,7 +69,7 @@ const Mail = () => {
     }
   };
 
-  const handleSocket = async () => {
+  const handleSocket = (callback) => {
     const socket = sockets(provider, email, userId);
     socket.connect();
     setSocket(socket);
@@ -83,9 +80,8 @@ const Mail = () => {
 
     socket.on("updateEmail", (message) => {
       console.log(message);
-      handleEvents("updateEmail", message);
+      callback("updateEmail", message);
     });
-    return socket;
   };
 
   useEffect(() => {
