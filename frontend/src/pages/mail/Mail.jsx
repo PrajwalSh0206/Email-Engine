@@ -6,7 +6,7 @@ import sockets from "../../sockets";
 import Toasts from "../../components/Toasts";
 import Loader from "../../components/Loader";
 
-const Mail = ({folderName="inbox"}) => {
+const Mail = ({ folderName = "inbox" }) => {
   let { provider } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +22,7 @@ const Mail = ({folderName="inbox"}) => {
 
   const handleMessage = async (newIndex) => {
     try {
+      setLoading(true);
       const email = searchParams.get("email");
       const userId = searchParams.get("user_id");
       const response = await axios({
@@ -71,7 +72,7 @@ const Mail = ({folderName="inbox"}) => {
   };
 
   const handleSocket = (callback) => {
-    const socket = sockets(provider, email, userId,folderName);
+    const socket = sockets(provider, email, userId, folderName);
     socket.connect();
     setSocket(socket);
 
