@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CONSTANTS from "../../constants";
 import sockets from "../../sockets";
@@ -17,10 +17,11 @@ const Mail = ({ folderName }) => {
   const [index, setIndex] = useState(0);
   const email = searchParams.get("email");
   const userId = searchParams.get("user_id");
-  const [socket, setSocket] = useState();
+  const [socket, setSocket] = useState(null);
   const [popUp, setPopUp] = useState();
   const [popUpMessage, setPopUpMessage] = useState();
   const [loading, setLoading] = useState(true);
+  const socketRef = useRef(null);
 
   const handleMessage = async (newIndex) => {
     try {
@@ -74,37 +75,33 @@ const Mail = ({ folderName }) => {
   };
 
   const handleSocket = (callback) => {
-    const socket = sockets(provider, email, userId, folderName);
-    socket.connect();
-    setSocket(socket);
+    if (socketRef.current) {
+      console.log("socket closed handleSocket")
+      socketRef.current.disconnect();
+    }
+    const newSocket = sockets(provider, email, userId, folderName);
+    socketRef.current = newSocket;
 
-    socket.on("connect", () => {
-      console.log(socket.connected); // true
+    newSocket.on("connect", () => {
+      console.log(newSocket.connected); // true
     });
 
-    mailEvents(socket, callback);
+    mailEvents(newSocket, callback);
   };
 
   useEffect(() => {
     handleMessage(0);
-    return () => {
-      if (socket) {
-        socket.disconnect(); // Close connection on unmount
+    return () => {      
+      if (socketRef.current) {
+        console.log("Socket Cleared")
+        socketRef.current.disconnect(); // Close connection on unmount
       }
     };
   }, [folderName]);
 
-  const handlePagination = (type) => {
+  const handleDecrement = () => {
     let prev = index;
-    let newIndex = index;
-    switch (type) {
-      case "dec":
-        newIndex = Math.max(index - 1, 0);
-        break;
-      default:
-        newIndex = Math.min(index + 1, batches - 1);
-        break;
-    }
+    let newIndex = Math.max(index - 1, 0);
     setIndex(newIndex);
     if (prev != newIndex) {
       setLoading(true);
@@ -112,6 +109,18 @@ const Mail = ({ folderName }) => {
       handleMessage(newIndex);
     }
   };
+
+  const handleIncrement = () => {
+    let prev = index;
+    let newIndex = Math.min(index + 1, batches - 1);
+    setIndex(newIndex);
+    if (prev != newIndex) {
+      setLoading(true);
+      console.log(newIndex);
+      handleMessage(newIndex);
+    }
+  };
+
   return (
     <div className="w-full h-full bg-white border-2 flex flex-col items-center space-y-3 rounded-md relative overflow-y-scroll border-gray-500">
       {popUp && (
@@ -127,14 +136,14 @@ const Mail = ({ folderName }) => {
         <div className="flex space-x-3 items-center sticky bottom-0 p-3 justify-end border-t-2 border-gray-500 bg-white w-full ">
           <button
             className="bg-white border-2 active:bg-gray-100 border-gray-500 transition-transform active:scale-95 text-gray-800 p-3 rounded-md"
-            onClick={() => handlePagination("dec")}
+            onClick={handleDecrement}
           >
             Previous
           </button>
           <p>{index + 1}</p>
           <p>-</p>
           <p>{batches}</p>
-          <button className="bg-gray-800 transition-transform active:scale-95 text-white p-3 rounded-md" onClick={() => handlePagination("inc")}>
+          <button className="bg-gray-800 transition-transform active:scale-95 text-white p-3 rounded-md" onClick={handleIncrement}>
             Next
           </button>
         </div>

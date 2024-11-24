@@ -13,7 +13,7 @@ const Table = ({ mailData }) => {
       </div>
       <div id="body">
         {Object.keys(mailData).map((key) => (
-          <div key={mailData[key].messageId} className="w-full flex p-2 last:border-b-0 border-b-2 border-x-2  border-gray-500 even:bg-gray-200">
+          <div key={mailData[key].messageId} className="w-full flex p-2 last:border-b-0 border-b-2 border-x-2  border-gray-400 even:bg-gray-100">
             <div className="p-2 w-1/12">{mailData[key].messageId}</div>
             <div className="p-2 w-3/12 break-words">{mailData[key].from}</div>
             <div className="p-2 w-3/12 break-words">{mailData[key].subject}</div>

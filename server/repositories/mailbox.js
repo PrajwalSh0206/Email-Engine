@@ -20,8 +20,10 @@ async function updateMail(data, condition) {
 
 async function createIfNotExist(data, condition) {
   let result = await find(["id"], condition);
-  if (!result) {
-    result = await create(data);
+  if (result) {
+    await updateMail(data, condition);
+  } else {
+    result = await create({ ...data, ...condition });
   }
   return result;
 }

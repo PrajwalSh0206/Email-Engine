@@ -1,4 +1,5 @@
 const { providers } = require("../../config/providers");
+const { STATUS_CODE } = require("../../constants/http-status");
 const { MailHandler } = require("../../modules/MailHandler");
 const { findWithLimit } = require("../../repositories/mailbox");
 const { findUser, updateUser } = require("../../repositories/users");
@@ -30,13 +31,15 @@ async function fetchMailService(req, res, logger) {
         let imap = new MailHandler({ email, provider, accessToken, userId, folderName }, null, logger);
         imap.fetchInitialEmails(index, async (err, result) => {
           if (err) {
-            return res.status(500).send(`Error While Fetching Data: ${err.message}`);
-          }
-          if (result?.messages) {
+            logger.error(`Error While Fetching Data: ${err.message}`);
+            return res.status(500).json({ message: `Error While Fetching Data: ${err.message}` });
+          } else if (result?.messages && Object.keys(result.messages)) {
             const { messages, batch } = result;
             logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
             await updateUser({ batch }, { id: userId });
             return res.json({ messages, batch });
+          } else {
+            return res.status(STATUS_CODE.NO_CONTENT).json({ messages, batch: 0 });
           }
         });
       } else {

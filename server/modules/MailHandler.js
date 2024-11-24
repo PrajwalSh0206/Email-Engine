@@ -88,16 +88,26 @@ class MailHandler {
     return new Promise((resolve, reject) => {
       this.imap.once("ready", () => {
         this.#openBox(this.#folderName, (err, box) => {
+          let hasError = false;
+
           if (err) {
+            hasError = true;
             this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
             this.imap.end();
-            return this.handleResponse(err, null, { resolve, reject });
+            return callback(err, null);
           }
+          const totalMessages = box.messages.total;
+          let messages = {};
+
+          if (totalMessages == 0) {
+            hasError = true;
+            this.imap.end();
+            return callback(null, { messages, batch: 0 });
+          }
+
           const parsePromises = []; // Array to store all parsing promises
 
-          let messages = {};
           const batchSize = 10;
-          const totalMessages = box.messages.total;
           const batch = Math.ceil(totalMessages / batchSize);
           const start = batchIndex * batchSize + 1;
           const end = Math.min((batchIndex + 1) * batchSize, totalMessages);
@@ -140,14 +150,12 @@ class MailHandler {
                   const condition = {
                     userId: this.#userId,
                     messageId,
+                    folderName: this.#folderName,
                   };
                   createIfNotExist(
                     {
-                      userId: this.#userId,
                       from: from.value[0].address,
-                      messageId,
                       subject,
-                      folderName: this.#folderName,
                       status: flag ? flag : "UNSEEN",
                       text: sanitizedText,
                       mailDate: dateFormatter.format(date),
@@ -162,11 +170,15 @@ class MailHandler {
               parsePromises.push(parsePromise); // Add the promise to the list
             });
           });
-          fetch.once("error", (fetchErr) => callback(fetchErr, null));
+          fetch.once("error", (fetchErr) => {
+            this.imap.end();
+            hasError = true;
+            return callback(fetchErr, null);
+          });
           fetch.once("end", () => {
+            if (hasError) return;
             Promise.all(parsePromises)
               .then(() => {
-                this.imap.end();
                 callback(null, { messages, batch });
               })
               .catch((parseErr) => {
