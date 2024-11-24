@@ -33,13 +33,14 @@ async function fetchMailService(req, res, logger) {
           if (err) {
             logger.error(`Error While Fetching Data: ${err.message}`);
             return res.status(500).json({ message: `Error While Fetching Data: ${err.message}` });
-          } else if (result?.messages && Object.keys(result.messages)) {
+          } else if (result?.messages && Object.keys(result.messages).length >= 1) {
             const { messages, batch } = result;
             logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
             await updateUser({ batch }, { id: userId });
             return res.json({ messages, batch });
           } else {
-            return res.status(STATUS_CODE.NO_CONTENT).json({ messages, batch: 0 });
+            logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
+            return res.status(STATUS_CODE.NO_CONTENT).json({ messages: {}, batch: 0 });
           }
         });
       } else {

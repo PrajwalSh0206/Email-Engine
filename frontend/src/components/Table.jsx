@@ -1,4 +1,4 @@
-const Table = ({ mailData }) => {
+const Table = ({ mailData={} }) => {
   return (
     <div className="w-full flex flex-col bg-white rounded-md border-gray-500">
       <div className="pt-3 sticky top-0 bg-white">

@@ -43,7 +43,7 @@ const Mail = ({ folderName }) => {
       setMail(messages);
       setBatches(batch);
       if (batch == 0) {
-        setIndex(0);
+        setIndex(-1);
       }
       if (!socket) {
         handleSocket(handleEvents);
