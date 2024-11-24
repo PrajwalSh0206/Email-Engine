@@ -22,15 +22,15 @@ const router = createBrowserRouter([
         children: [
           {
             path: "inbox",
-            element: <Mail folderName="INBOX"></Mail>,
+            element: <Mail key={"INBOX"} folderName="INBOX"></Mail>,
           },
           {
             path: "deleted",
-            element: <Mail folderName="Deleted"></Mail>,
+            element: <Mail key={"DELETED"} folderName="Deleted"></Mail>,
           },
           {
             path: "sent",
-            element: <Mail folderName="sent"></Mail>,
+            element: <Mail key={"SENT"} folderName="sent"></Mail>,
           },
         ],
       },

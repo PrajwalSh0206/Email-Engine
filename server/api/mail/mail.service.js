@@ -26,7 +26,7 @@ async function fetchMailService(req, res, logger) {
       };
 
       const mailResponse = await findWithLimit(attributes, condition, offset, limit);
-      if (!mailResponse?.length || mailResponse?.length != 10) {
+      if (index == 0 || !mailResponse || !mailResponse?.length || mailResponse?.length != 10) {
         let imap = new MailHandler({ email, provider, accessToken, userId, folderName }, null, logger);
         imap.fetchInitialEmails(index, async (err, result) => {
           if (err) {
@@ -36,14 +36,14 @@ async function fetchMailService(req, res, logger) {
             const { messages, batch } = result;
             logger.info(`Email Fetched | Successfully | Length | ${Object.keys(result?.messages).length}`);
             await updateUser({ batch }, { id: userId });
-            res.json({ messages, batch });
+            return res.json({ messages, batch });
           }
         });
       } else {
         const userResponse = await findUser(["batch"], { id: userId });
         const { batch } = userResponse;
         const messages = convertArrayToObj(mailResponse, "messageId");
-        res.json({ messages, batch });
+        return res.json({ messages, batch });
       }
     } catch (error) {
       logger.error(`Error | ${JSON.stringify(error)}`);

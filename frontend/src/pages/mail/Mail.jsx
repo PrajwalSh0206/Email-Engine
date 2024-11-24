@@ -5,8 +5,10 @@ import CONSTANTS from "../../constants";
 import sockets from "../../sockets";
 import Toasts from "../../components/Toasts";
 import Loader from "../../components/Loader";
+import mailEvents from "../../sockets/mailEvents";
+import Table from "../../components/Table";
 
-const Mail = ({ folderName = "inbox" }) => {
+const Mail = ({ folderName }) => {
   let { provider } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -80,10 +82,7 @@ const Mail = ({ folderName = "inbox" }) => {
       console.log(socket.connected); // true
     });
 
-    socket.on("updateEmail", (message) => {
-      console.log(message);
-      callback("updateEmail", message);
-    });
+    mailEvents(socket, callback);
   };
 
   useEffect(() => {
@@ -113,12 +112,8 @@ const Mail = ({ folderName = "inbox" }) => {
       handleMessage(newIndex);
     }
   };
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
-    <div className="w-full h-full bg-gray-200">
+    <div className="w-full h-full bg-white border-2 flex flex-col items-center space-y-3 rounded-md relative overflow-y-scroll border-gray-500">
       {popUp && (
         <Toasts
           message={popUpMessage}
@@ -127,41 +122,9 @@ const Mail = ({ folderName = "inbox" }) => {
           }}
         ></Toasts>
       )}
-
-      <div className="rounded-md w-full bg-white border-2 border-gray-500 p-3 flex flex-col items-end space-y-5 overflow-x-scroll">
-        <table className="w-full min-h-full relative text-left">
-          <thead className="border-b-2 border-gray-300">
-            <tr>
-              <th className="p-2 w-1/12">UID</th>
-              <th className="p-2 w-2/12">Sender</th>
-              <th className="p-2 w-2/12">Subject</th>
-              <th className="p-2 w-1/12">Flag</th>
-              <th className="p-2 w-2/12">Date</th>
-              <th className="p-2 w-2/12">Time</th>
-              <th className="p-2 w-2/12">View</th>
-            </tr>
-          </thead>
-          <tbody className="overflow-scroll">
-            {Object.keys(mail).map((value) => (
-              <tr key={mail[value].messageId} className="even:bg-gray-200">
-                <td className="p-4 w-1/12">{mail[value].messageId}</td>
-                <td className="p-4 relative w-2/12">{mail[value].from}</td>
-                <td className="p-4 w-2/12">{mail[value].subject}</td>
-                <td className="p-4 w-1/12">{mail[value].flag}</td>
-                <td className="p-4 w-2/12">{mail[value].date}</td>
-                <td className="p-4 w-2/12">{mail[value].time}</td>
-                <td className="p-4">
-                  <button className="transition-transform transform active:scale-95 rounded-full p-1 bg-gray-200 border-2 border-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                      <path stroke-linecap="round" strokeLineJoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="flex space-x-3 items-center">
+      <div className="px-3 w-full">
+        {loading ? <Loader></Loader> : <Table mailData={mail}></Table>}
+        <div className="flex space-x-3 items-center sticky bottom-0 p-3 justify-end border-t-2 border-gray-500 bg-white w-full ">
           <button
             className="bg-white border-2 active:bg-gray-100 border-gray-500 transition-transform active:scale-95 text-gray-800 p-3 rounded-md"
             onClick={() => handlePagination("dec")}

@@ -1,8 +1,4 @@
-module.exports = (socket, callback) => {
-  socket.on("connect", () => {
-    console.log(socket.connected); // true
-  });
-
+export default (socket, callback) => {
   socket.on("updateEmail", (message) => {
     callback("updateEmail", message);
   });
