@@ -42,6 +42,9 @@ const Mail = ({ folderName }) => {
       const { messages, batch } = response.data;
       setMail(messages);
       setBatches(batch);
+      if (batch == 0) {
+        setIndex(0);
+      }
       if (!socket) {
         handleSocket(handleEvents);
       }
@@ -76,7 +79,7 @@ const Mail = ({ folderName }) => {
 
   const handleSocket = (callback) => {
     if (socketRef.current) {
-      console.log("socket closed handleSocket")
+      console.log("socket closed handleSocket");
       socketRef.current.disconnect();
     }
     const newSocket = sockets(provider, email, userId, folderName);
@@ -91,9 +94,9 @@ const Mail = ({ folderName }) => {
 
   useEffect(() => {
     handleMessage(0);
-    return () => {      
+    return () => {
       if (socketRef.current) {
-        console.log("Socket Cleared")
+        console.log("Socket Cleared");
         socketRef.current.disconnect(); // Close connection on unmount
       }
     };
