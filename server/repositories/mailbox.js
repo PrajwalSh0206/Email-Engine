@@ -28,6 +28,16 @@ async function createIfNotExist(data, condition) {
   return result;
 }
 
+async function createOrUpdateMail(data, condition) {
+  let result = await find(["id"], condition);
+  if (result) {
+    await updateMail(data, condition);
+  } else {
+    result = await create({ ...data, ...condition });
+  }
+  return result;
+}
+
 async function findWithLimit(attributes, condition, offset, limit) {
   return Mailbox.findAll({
     attributes,
@@ -38,4 +48,4 @@ async function findWithLimit(attributes, condition, offset, limit) {
   });
 }
 
-module.exports = { create, createIfNotExist, findWithLimit, updateMail };
+module.exports = { create, createIfNotExist, findWithLimit, updateMail, createOrUpdateMail };

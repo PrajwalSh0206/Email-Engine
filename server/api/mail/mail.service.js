@@ -7,9 +7,10 @@ const { convertArrayToObj } = require("../../utils/common");
 
 async function fetchMailService(req, res, logger) {
   const { provider } = req.params;
-  const { email, index, userId, folderName } = req.body;
+  let { email, index, userId, folderName = "INBOX" } = req.body;
   logger = logger.child("Service");
   logger.info("Entered");
+  folderName = folderName.toUpperCase();
 
   const accessToken = req.cookies.access_token;
 

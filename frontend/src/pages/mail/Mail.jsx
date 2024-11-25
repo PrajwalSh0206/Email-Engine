@@ -135,7 +135,7 @@ const Mail = ({ folderName }) => {
         ></Toasts>
       )}
       <div className="px-3 w-full">
-        {loading ? <Loader></Loader> : <Table mailData={mail}></Table>}
+        {loading ? <Loader></Loader> : <Table mailData={mail} folderName={folderName}></Table>}
         <div className="flex space-x-3 items-center sticky bottom-0 p-3 justify-end border-t-2 border-gray-500 bg-white w-full ">
           <button
             className="bg-white border-2 active:bg-gray-100 border-gray-500 transition-transform active:scale-95 text-gray-800 p-3 rounded-md"
