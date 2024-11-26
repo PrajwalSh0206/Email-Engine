@@ -12,6 +12,7 @@ const { errorHandler } = require("./middleware/error-handler");
 const mailEvents = require("./sockets/mailEvents");
 const { sequelize } = require("./models");
 const { FRONTEND_URL } = require("./constants");
+const { authHandler } = require("./middleware/authentication");
 const logger = new Logger("Main");
 
 const app = express();
@@ -35,7 +36,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(ReqCtx);
+app.use(authHandler);
 app.use(router);
+
 app.use(errorHandler);
 
 const startServer = () => {

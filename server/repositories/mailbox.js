@@ -31,7 +31,9 @@ async function createIfNotExist(data, condition) {
 async function createOrUpdateMail(data, condition) {
   let result = await find(["id"], condition);
   if (result) {
-    await updateMail(data, condition);
+    const { status } = data;
+    let statusResult = await find(["id"], { ...condition, status });
+    if (!statusResult) await updateMail({ status }, condition);
   } else {
     result = await create({ ...data, ...condition });
   }

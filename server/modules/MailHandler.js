@@ -51,6 +51,27 @@ class MailHandler {
           return callback(err, null);
         }
 
+        const totalMessages = box.messages.total;
+        if (totalMessages !== 0) {
+          const batchSize = 10;
+          const batch = Math.ceil(totalMessages / batchSize);
+
+          for (let i = 1; i < batch; i++) {
+            this.fetchBatchEmail(
+              totalMessages,
+              i,
+              (err, result) => {
+                if (err) {
+                  this.#logger.error(`Error: ${err}`);
+                } else {
+                  this.#logger.info(`Batch ${i + 1} Completed`);
+                }
+              },
+              false
+            );
+          }
+        }
+
         this.imap.on("mail", (numNewMsgs) => {
           this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
@@ -99,7 +120,7 @@ class MailHandler {
     this.imap.connect();
   }
 
-  async fetchBatchEmail(totalMessages, batchIndex, callback) {
+  async fetchBatchEmail(totalMessages, batchIndex, callback, endImap = true) {
     const parsePromises = []; // Array to store all parsing promises
     let messages = {};
     const batchSize = 10;
@@ -121,7 +142,7 @@ class MailHandler {
       msg.once("attributes", (attrs) => {
         this.#logger.info(`Flag: ${JSON.stringify(attrs.flags)}`);
         const parsePromise = new Promise((resolveParser, rejectParser) => {
-          simpleParser(buffer, (err, mail) => {
+          simpleParser(buffer, async (err, mail) => {
             if (err) {
               logger.error(`Error ${err}`);
               return rejectParser(err);
@@ -149,7 +170,7 @@ class MailHandler {
               messageId,
               folderName: this.#folderName,
             };
-            createOrUpdateMail(
+            await createOrUpdateMail(
               {
                 from: from.value[0].address,
                 subject,
@@ -168,7 +189,7 @@ class MailHandler {
       });
     });
     fetch.once("error", (fetchErr) => {
-      this.imap.end();
+      endImap && this.imap.end();
       hasError = true;
       return callback(fetchErr, null);
     });

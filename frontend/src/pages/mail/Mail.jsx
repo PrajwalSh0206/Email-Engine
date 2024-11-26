@@ -39,7 +39,7 @@ const Mail = ({ folderName }) => {
         },
         withCredentials: true,
       });
-      const { messages, batch, totalMessages } = response.data;
+      const { messages, batch } = response.data;
       setMail(messages);
       setBatches(batch);
       if ([0, undefined, "", null].includes(batch)) {
