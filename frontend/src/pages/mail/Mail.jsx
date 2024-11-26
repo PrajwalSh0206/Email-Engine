@@ -39,11 +39,12 @@ const Mail = ({ folderName }) => {
         },
         withCredentials: true,
       });
-      const { messages, batch } = response.data;
+      const { messages, batch, totalMessages } = response.data;
       setMail(messages);
       setBatches(batch);
-      if (batch == 0) {
+      if ([0, undefined, "", null].includes(batch)) {
         setIndex(-1);
+        setBatches(0);
       }
       if (!socket) {
         handleSocket(handleEvents);

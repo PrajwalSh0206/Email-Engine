@@ -44,7 +44,13 @@ class MailHandler {
 
   monitorForNewEmails(callback) {
     this.imap.once("ready", () => {
-      this.#openBox(this.#folderName, () => {
+      this.#openBox(this.#folderName, (err, box) => {
+        if (err) {
+          this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
+          this.imap.end();
+          return callback(err, null);
+        }
+
         this.imap.on("mail", (numNewMsgs) => {
           this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
         });
@@ -91,31 +97,6 @@ class MailHandler {
       });
     });
     this.imap.connect();
-  }
-
-  async syncMails(callback) {
-    return new Promise(() => {
-      this.imap.once("ready", () => {
-        this.#openBox(this.#folderName, (err, box) => {
-          if (err) {
-            hasError = true;
-            this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
-            this.imap.end();
-            return callback(err, null);
-          }
-          const totalMessages = box.messages.total;
-
-          if (totalMessages == 0) {
-            hasError = true;
-            this.imap.end();
-            return callback(null, { messages: {}, batch: 0 });
-          } else {
-            this.fetchBatchEmail(totalMessages, batchIndex, callback);
-          }
-        });
-      });
-      this.imap.connect();
-    });
   }
 
   async fetchBatchEmail(totalMessages, batchIndex, callback) {
@@ -236,13 +217,14 @@ class MailHandler {
             this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
             this.imap.end();
             return callback(err, null);
-          }
-          const totalMessages = box.messages.total;
-          if (totalMessages == 0) {
-            this.imap.end();
-            return callback(null, { messages: {}, totalMessages, batch: 0 });
           } else {
-            this.fetchBatchEmail(totalMessages, batchIndex, callback);
+            const totalMessages = box.messages.total;
+            if (totalMessages == 0) {
+              this.imap.end();
+              return callback(null, { messages: {}, totalMessages, batch: 0 });
+            } else {
+              this.fetchBatchEmail(totalMessages, batchIndex, (err, result) => {});
+            }
           }
         });
       });
