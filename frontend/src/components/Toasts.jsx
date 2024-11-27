@@ -9,7 +9,7 @@ const Toasts = ({ message, onClose }) => {
   }, [message, onClose]);
 
   return (
-    <div className={`fixed bottom-5 right-5 max-w-xs w-full p-4 text-white rounded-lg shadow-lg bg-gray-600`} role="alert">
+    <div className={`fixed bottom-5 right-5 max-w-xs w-full p-4 z-50 text-white rounded-lg shadow-lg bg-gray-600`} role="alert">
       <div className="flex justify-between items-center">
         <span>{message}</span>
         <button onClick={onClose} className="ml-2 text-lg font-bold">
