@@ -5,7 +5,7 @@ async function create(data) {
   return Mailbox.create(data);
 }
 
-async function find(attributes, condition) {
+async function findMail(attributes, condition) {
   return Mailbox.findOne({
     attributes,
     where: condition,
@@ -29,10 +29,10 @@ async function createIfNotExist(data, condition) {
 }
 
 async function createOrUpdateMail(data, condition) {
-  let result = await find(["id"], condition);
+  let result = await findMail(["id"], condition);
   if (result) {
     const { status } = data;
-    let statusResult = await find(["id"], { ...condition, status });
+    let statusResult = await findMail(["id"], { ...condition, status });
     if (!statusResult) await updateMail({ status }, condition);
   } else {
     result = await create({ ...data, ...condition });
@@ -50,4 +50,4 @@ async function findWithLimit(attributes, condition, offset, limit) {
   });
 }
 
-module.exports = { create, createIfNotExist, findWithLimit, updateMail, createOrUpdateMail };
+module.exports = { create, createIfNotExist, findMail, findWithLimit, updateMail, createOrUpdateMail };

@@ -46,11 +46,12 @@ const Mail = ({ folderName }) => {
         setIndex(-1);
         setBatches(0);
       }
-      if (!socket) {
+      if (!socketRef.current) {
         handleSocket(handleEvents);
       }
       setLoading(false);
     } catch (error) {
+      console.log(error)
       navigate("/");
     }
   };

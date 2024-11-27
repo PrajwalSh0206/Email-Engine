@@ -44,7 +44,7 @@ class MailHandler {
 
   monitorForNewEmails(callback) {
     this.imap.once("ready", () => {
-      this.#openBox(this.#folderName, (err, box) => {
+      this.#openBox(this.#folderName, async (err, box) => {
         if (err) {
           this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
           this.imap.end();
@@ -57,18 +57,22 @@ class MailHandler {
           const batch = Math.ceil(totalMessages / batchSize);
 
           for (let i = 1; i < batch; i++) {
-            this.fetchBatchEmail(
-              totalMessages,
-              i,
-              (err, result) => {
-                if (err) {
-                  this.#logger.error(`Error: ${err}`);
-                } else {
-                  this.#logger.info(`Batch ${i + 1} Completed`);
-                }
-              },
-              false
-            );
+            await new Promise((resolve, reject) => {
+              this.fetchBatchEmail(
+                totalMessages,
+                i,
+                (err, result) => {
+                  if (err) {
+                    this.#logger.error(`Error: ${err}`);
+                    resolve();
+                  } else {
+                    this.#logger.info(`Batch ${i + 1} Completed`);
+                    resolve();
+                  }
+                },
+                false
+              );
+            });
           }
         }
 
