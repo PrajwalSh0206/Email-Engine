@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const { providersKeys } = require("../../config/providers");
 
-const mailSchema = {
+const mailParamSchema = {
   source: "params",
   schema: Joi.object({
     provider: Joi.string().custom((value, helpers) => {
@@ -13,6 +13,16 @@ const mailSchema = {
   }),
 };
 
+const mailBodySchema = {
+  source: "body",
+  schema: Joi.object({
+    email: Joi.string().required().email(),
+    index: Joi.number().required(),
+    userId: Joi.string().required(),
+    folderName: Joi.string().required(),
+  }),
+};
 module.exports = {
-  mailSchema,
+  mailParamSchema,
+  mailBodySchema,
 };
