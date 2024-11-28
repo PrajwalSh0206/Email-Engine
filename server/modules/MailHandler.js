@@ -3,7 +3,7 @@ const { simpleParser } = require("mailparser");
 const { providers } = require("../config/providers");
 const sanitizeHtml = require("sanitize-html");
 const { dateFormatter, timeFormatter } = require("../utils/common");
-const { updateMail, createOrUpdateMail } = require("../repositories/mailbox");
+const { updateMail, createOrUpdateMail, findMail } = require("../repositories/mailbox");
 const { decrypt } = require("../utils/enc-dec");
 
 class MailHandler {
@@ -51,6 +51,7 @@ class MailHandler {
           return callback(err, null);
         }
 
+        // Sync Mail Starts
         const totalMessages = box.messages.total;
         if (totalMessages !== 0) {
           const batchSize = 10;
@@ -75,9 +76,12 @@ class MailHandler {
             });
           }
         }
+        // Sync Mail Ends
 
+        // Listen For New Email
         this.imap.on("mail", (numNewMsgs) => {
           this.#logger.info(`New mail arrived: ${numNewMsgs} message(s).`);
+          this.fetchNewEmails(callback);
         });
 
         // Listen for message deletions
@@ -94,6 +98,7 @@ class MailHandler {
           );
         });
 
+        // Listen for Update
         this.imap.on("update", (seqno) => {
           this.#logger.info(`Message updated. Sequence number: ${seqno}`);
 
@@ -124,6 +129,108 @@ class MailHandler {
     this.imap.connect();
   }
 
+  messageParser(msg, messages, parsePromises) {
+    let buffer = "";
+    msg.on("body", (stream) => {
+      stream.on("data", (chunk) => {
+        buffer += chunk.toString("utf8");
+      });
+    });
+
+    msg.once("attributes", (attrs) => {
+      this.#logger.info(`Flag: ${JSON.stringify(attrs.flags)}`);
+      const parsePromise = new Promise((resolveParser, rejectParser) => {
+        simpleParser(buffer, async (err, mail) => {
+          if (err) {
+            logger.error(`Error ${err}`);
+            return rejectParser(err);
+          }
+          const { subject, text, from, date } = mail;
+
+          const messageId = attrs.uid.toString();
+
+          const sanitizedText = sanitizeHtml(text || "");
+
+          let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
+          let message = {
+            from: from.value[0].address,
+            messageId,
+            subject,
+            flag: flag ? flag : "UNSEEN",
+            folderName: this.#folderName,
+            text: sanitizedText,
+            date: dateFormatter.format(date),
+            time: timeFormatter.format(date),
+          };
+
+          const condition = {
+            userId: this.#userId,
+            messageId,
+            folderName: this.#folderName,
+          };
+          await createOrUpdateMail(
+            {
+              from: from.value[0].address,
+              subject,
+              status: flag ? flag : "UNSEEN",
+              text: sanitizedText,
+              mailDate: dateFormatter.format(date),
+              mailTime: timeFormatter.format(date),
+            },
+            condition
+          );
+          messages[messageId] = message;
+          resolveParser();
+        });
+      });
+      parsePromises.push(parsePromise); // Add the promise to the list
+    });
+  }
+
+  async fetchNewEmails(callback) {
+    const mail = await findMail(
+      ["messageId"],
+      {
+        userId: this.#userId,
+        folderName: this.#folderName,
+      },
+      [["messageId", "DESC"]]
+    );
+    const searchCriteria = [["UID", `${mail.messageId + 1}:*`]]; // Fetch emails with UID > lastUid
+    const fetchOptions = {
+      bodies: ["HEADER", "TEXT"],
+      struct: true,
+    };
+
+    return new Promise((resolve, reject) => {
+      this.imap.search(searchCriteria, (err, results) => {
+        if (err) return reject(err);
+
+        if (results.length === 0) return resolve([]); // No new emails
+
+        const fetch = this.imap.fetch(results, fetchOptions);
+        let messages = {};
+        let parsePromises = [];
+        fetch.on("message", (msg) => {
+          this.messageParser(msg, messages, parsePromises);
+        });
+
+        fetch.on("end", () => {
+          Promise.all(parsePromises)
+            .then(() => {
+              this.#logger.info(`${JSON.stringify(messages)}`);
+              callback("newEmail", { messages });
+            })
+            .catch((parseErr) => {
+              this.#logger.error(`Error : ${JSON.stringify(parseErr)}`);
+              callback(parseErr, null);
+            });
+        });
+        fetch.on("error", (err) => reject(err));
+      });
+    });
+  }
+
   async fetchBatchEmail(totalMessages, batchIndex, callback, endImap = true) {
     const parsePromises = []; // Array to store all parsing promises
     let messages = {};
@@ -136,61 +243,7 @@ class MailHandler {
     let hasError = false;
 
     fetch.on("message", (msg) => {
-      let buffer = "";
-      msg.on("body", (stream) => {
-        stream.on("data", (chunk) => {
-          buffer += chunk.toString("utf8");
-        });
-      });
-
-      msg.once("attributes", (attrs) => {
-        this.#logger.info(`Flag: ${JSON.stringify(attrs.flags)}`);
-        const parsePromise = new Promise((resolveParser, rejectParser) => {
-          simpleParser(buffer, async (err, mail) => {
-            if (err) {
-              logger.error(`Error ${err}`);
-              return rejectParser(err);
-            }
-            const { subject, text, from, date } = mail;
-
-            const messageId = attrs.uid.toString();
-
-            const sanitizedText = sanitizeHtml(text || "");
-
-            let flag = attrs.flags[0]?.replace(/\\/g, "").toUpperCase();
-            let message = {
-              from: from.value[0].address,
-              messageId,
-              subject,
-              flag: flag ? flag : "UNSEEN",
-              folderName: this.#folderName,
-              text: sanitizedText,
-              date: dateFormatter.format(date),
-              time: timeFormatter.format(date),
-            };
-
-            const condition = {
-              userId: this.#userId,
-              messageId,
-              folderName: this.#folderName,
-            };
-            await createOrUpdateMail(
-              {
-                from: from.value[0].address,
-                subject,
-                status: flag ? flag : "UNSEEN",
-                text: sanitizedText,
-                mailDate: dateFormatter.format(date),
-                mailTime: timeFormatter.format(date),
-              },
-              condition
-            );
-            messages[messageId] = message;
-            resolveParser();
-          });
-        });
-        parsePromises.push(parsePromise); // Add the promise to the list
-      });
+      this.messageParser(msg, messages, parsePromises);
     });
     fetch.once("error", (fetchErr) => {
       endImap && this.imap.end();
@@ -226,30 +279,6 @@ class MailHandler {
             return callback(null, { messages: {}, totalMessages, batch: 0 });
           } else {
             this.fetchBatchEmail(totalMessages, batchIndex, callback);
-          }
-        });
-      });
-      this.imap.connect();
-    });
-  }
-
-  async syncMails() {
-    return new Promise(() => {
-      this.imap.once("ready", () => {
-        this.#openBox(this.#folderName, (err, box) => {
-          if (err) {
-            hasError = true;
-            this.#logger.error(`FolderName: ${this.#folderName} | Error : ${JSON.stringify(err)}`);
-            this.imap.end();
-            return callback(err, null);
-          } else {
-            const totalMessages = box.messages.total;
-            if (totalMessages == 0) {
-              this.imap.end();
-              return callback(null, { messages: {}, totalMessages, batch: 0 });
-            } else {
-              this.fetchBatchEmail(totalMessages, batchIndex, (err, result) => {});
-            }
           }
         });
       });

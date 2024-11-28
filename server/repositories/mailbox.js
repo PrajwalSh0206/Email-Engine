@@ -5,10 +5,11 @@ async function create(data) {
   return Mailbox.create(data);
 }
 
-async function findMail(attributes, condition) {
+async function findMail(attributes, condition, order = []) {
   return Mailbox.findOne({
     attributes,
     where: condition,
+    order: order,
   });
 }
 

@@ -17,7 +17,6 @@ const Mail = ({ folderName }) => {
   const [index, setIndex] = useState(0);
   const email = searchParams.get("email");
   const userId = searchParams.get("user_id");
-  const [socket, setSocket] = useState(null);
   const [popUp, setPopUp] = useState();
   const [popUpMessage, setPopUpMessage] = useState();
   const [loading, setLoading] = useState(true);
@@ -51,37 +50,37 @@ const Mail = ({ folderName }) => {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       navigate("/");
     }
   };
 
   const handleEvents = (type, data) => {
-    switch (type) {
-      case "updateEmail": {
-        const { messageId, flag } = data;
-        setPopUpMessage(`Updating Mail Id ${messageId} With Flag ${flag}`);
-        setMail((prevMail) => {
-          const currentMails = prevMail || {};
-          setPopUp(true);
-          if (currentMails[messageId]) {
-            return {
-              ...currentMails,
-              [messageId]: { ...currentMails[messageId], flag },
-            };
-          } else {
-            return currentMails;
-          }
-        });
-
-        break;
-      }
+    let popUpMessage = "";
+    const { messageId, flag, messages } = data;
+    if (type == "updateEmail") {
+      popUpMessage = `Updating Mail Id ${messageId} With Flag ${flag}`;
+    } else {
+      popUpMessage = `New Mail Recieved: ${Object.keys(messages).length} `;
     }
+    setPopUpMessage(popUpMessage);
+    setPopUp(true);
+    setMail((prevMail) => {
+      const currentMails = prevMail || {};
+      if (currentMails[messageId]) {
+        return {
+          ...currentMails,
+          [messageId]: { ...currentMails[messageId], flag },
+        };
+      } else {
+        return currentMails;
+      }
+    });
   };
 
   const handleSocket = (callback) => {
     if (socketRef.current) {
-      console.log("socket closed handleSocket");
+      console.log("Socket closed");
       socketRef.current.disconnect();
     }
     const newSocket = sockets(provider, email, userId, folderName);
