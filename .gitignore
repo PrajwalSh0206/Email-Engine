@@ -1,0 +1,8 @@
+#overall
+node_modules
+.env
+postgres_data
+
+#FE
+.parcel-cache
+dist

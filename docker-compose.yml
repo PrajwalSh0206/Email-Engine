@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: my_user
+      POSTGRES_PASSWORD: my_password
+      POSTGRES_DB: my_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+      
+  ui:
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - web
+    networks:
+      - backend
+
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    volumes:
+      - ./server:/server
+      - /server/node_modules
+    env_file:
+      - .env 
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - frontend
+    command: "nodemon index.js"
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  backend:
+  frontend:

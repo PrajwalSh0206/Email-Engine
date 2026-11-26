@@ -1,0 +1,22 @@
+# Use a Node.js image for development
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /server
+
+# Copy package.json and install dependencies
+COPY ./server/package.json package.json
+
+RUN npm install
+
+# Copy backend source code
+COPY ./server .
+
+# Install nodemon for hot-reloading
+RUN npm install -g nodemon
+
+# Expose the backend server's port
+EXPOSE 8000
+
+# Start the Express app with nodemon
+CMD ["npm", "run", "start"]

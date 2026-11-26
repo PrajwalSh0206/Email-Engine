@@ -1,0 +1,26 @@
+# Step 1: Build stage
+FROM node:18 AS build
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock) for installing dependencies
+COPY ./frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+RUN npm i -g serve
+
+# Copy the rest of the application code
+COPY ./frontend ./
+
+# Build the app for production
+RUN npm run build
+
+# Expose the port that Nginx is listening on
+EXPOSE 3000
+
+# Start Nginx server
+CMD [ "serve", "-s", "dist" ]
+
