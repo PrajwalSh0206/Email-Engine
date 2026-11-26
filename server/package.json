@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Express API and Socket.IO backend for OAuth email access and IMAP mailbox management.",
   "dependencies": {
     "amqplib": "^0.10.5",
     "axios": "^1.7.7",
